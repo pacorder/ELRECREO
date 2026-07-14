@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="google-adsense-account" content="ca-pub-2358850294363122">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2358850294363122" crossorigin="anonymous"></script>
+<title>CristoPlay • Juegos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ══ ROOT ══ */
+:root {
+  --bg:    #050510;
+  --text:  #e8e8ff;
+  --dim:   #5555aa;
+  --panel: rgba(255,255,255,0.04);
+  --pb:    rgba(255,255,255,0.08);
+  --c-breath: #00f5ff;
+  --c-brain:  #ff0090;
+  --c-sudoku: #39ff14;
+  --c-words:  #ffe600;
+  --c-arcade: #ff6600;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Rajdhani',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+}
+
+/* BG */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px; animation:gridDrift 22s linear infinite;
+}
+@keyframes gridDrift { to { background-position:0 60px; } }
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 700px 500px at 10% 20%,rgba(0,245,255,0.05) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 500px at 90% 80%,rgba(255,0,144,0.06) 0%,transparent 70%);
+}
+.scanlines {
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+}
+#app { position:relative; z-index:2; display:flex; flex-direction:column; min-height:100vh; }
+
+/* ══ HEADER ══ */
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 5%; border-bottom:1px solid var(--pb);
+  background:rgba(5,5,16,0.96); backdrop-filter:blur(8px);
+  position:sticky; top:0; z-index:100;
+}
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon {
+  width:44px; height:44px; border-radius:10px;
+  background:linear-gradient(135deg,#00f5ff22,#ff009022);
+  border:1.5px solid var(--c-breath);
+  display:grid; place-items:center; font-size:1.4rem; color:var(--c-breath);
+  box-shadow:0 0 18px rgba(0,245,255,0.5); animation:iconPulse 3s ease-in-out infinite;
+}
+@keyframes iconPulse {
+  0%,100%{ box-shadow:0 0 18px rgba(0,245,255,0.5); }
+  50%{ box-shadow:0 0 30px rgba(0,245,255,0.8),0 0 60px rgba(0,245,255,0.2); }
+}
+.logo-text {
+  font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:900; letter-spacing:2px;
+  background:linear-gradient(90deg,var(--c-breath),var(--c-brain));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.logo-sub { font-size:0.6rem; letter-spacing:4px; color:var(--dim); font-family:'Orbitron',monospace; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.status-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--c-sudoku);
+  box-shadow:0 0 8px var(--c-sudoku); animation:blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+.header-badge {
+  font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:3px;
+  padding:5px 12px; border-radius:20px; color:var(--c-breath);
+  background:rgba(0,245,255,0.06); border:1px solid rgba(0,245,255,0.2);
+}
+
+/* ══ HERO ══ */
+.hero { padding:28px 5% 0; }
+.hero-eyebrow {
+  font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:5px;
+  color:var(--c-brain); text-transform:uppercase; margin-bottom:12px;
+  display:flex; align-items:center; gap:10px;
+}
+.hero-eyebrow::before {
+  content:''; display:block; width:36px; height:1px;
+  background:var(--c-brain); box-shadow:0 0 6px var(--c-brain);
+}
+.hero h1 {
+  font-family:'Orbitron',monospace; font-size:clamp(1.8rem,4.5vw,3.2rem);
+  font-weight:900; line-height:1.15; margin-bottom:12px;
+}
+.hero h1 .hl {
+  background:linear-gradient(90deg,var(--c-breath),#8888ff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 16px rgba(0,245,255,0.4));
+}
+.hero-sub { font-size:1rem; color:var(--dim); letter-spacing:2px; font-weight:300; margin-bottom:20px; }
+
+/* ══ STATS BAR ══ */
+.stats-bar {
+  display:flex; padding:16px 5%;
+  border-top:1px solid var(--pb); border-bottom:1px solid var(--pb);
+  margin-bottom:0; overflow-x:auto; scrollbar-width:none;
+}
+.stats-bar::-webkit-scrollbar { display:none; }
+.stat {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  min-width:fit-content; padding:0 24px;
+  border-right:1px solid rgba(0,245,255,0.08);
+}
+.stat:last-child { border-right:none; }
+.stat-val {
+  font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900;
+  color:var(--c-breath); text-shadow:0 0 12px rgba(0,245,255,0.5);
+}
+.stat-lbl { font-size:0.58rem; letter-spacing:3px; text-transform:uppercase; color:var(--dim); }
+
+/* ══ SECTION ══ */
+.section { padding:44px 0 0; }
+
+.section-header {
+  display:flex; align-items:center; gap:14px;
+  padding:0 5%; margin-bottom:20px;
+}
+.section-icon {
+  width:38px; height:38px; border-radius:9px;
+  display:grid; place-items:center; font-size:1rem; flex-shrink:0;
+}
+.section-title {
+  font-family:'Orbitron',monospace; font-size:1rem;
+  font-weight:700; letter-spacing:3px; text-transform:uppercase;
+}
+.section-line { flex:1; height:1px; }
+.section-count {
+  font-family:'Orbitron',monospace; font-size:0.68rem; color:var(--dim); white-space:nowrap;
+}
+
+/* Colors per section */
+.si-breath  { background:rgba(0,245,255,0.1);  border:1px solid rgba(0,245,255,0.3);  color:var(--c-breath); box-shadow:0 0 12px rgba(0,245,255,0.2); }
+.si-brain   { background:rgba(255,0,144,0.1);  border:1px solid rgba(255,0,144,0.3);  color:var(--c-brain);  box-shadow:0 0 12px rgba(255,0,144,0.2); }
+.si-sudoku  { background:rgba(57,255,20,0.1);  border:1px solid rgba(57,255,20,0.3);  color:var(--c-sudoku); box-shadow:0 0 12px rgba(57,255,20,0.2); }
+.si-words   { background:rgba(255,230,0,0.1);  border:1px solid rgba(255,230,0,0.3);  color:var(--c-words);  box-shadow:0 0 12px rgba(255,230,0,0.2); }
+.si-arcade  { background:rgba(255,102,0,0.1);  border:1px solid rgba(255,102,0,0.3);  color:var(--c-arcade); box-shadow:0 0 12px rgba(255,102,0,0.2); }
+.sl-breath  { background:linear-gradient(to right,rgba(0,245,255,0.2),transparent); }
+.sl-brain   { background:linear-gradient(to right,rgba(255,0,144,0.2),transparent); }
+.sl-sudoku  { background:linear-gradient(to right,rgba(57,255,20,0.2),transparent); }
+.sl-words   { background:linear-gradient(to right,rgba(255,230,0,0.2),transparent); }
+.sl-arcade  { background:linear-gradient(to right,rgba(255,102,0,0.2),transparent); }
+
+/* ══ CAROUSEL ══ */
+.carousel {
+  display:flex; gap:18px; overflow-x:auto;
+  padding:6px 5% 20px; scroll-snap-type:x mandatory;
+  scrollbar-width:thin; scrollbar-color:rgba(0,245,255,0.15) transparent;
+}
+.carousel::-webkit-scrollbar { height:3px; }
+.carousel::-webkit-scrollbar-thumb { background:rgba(0,245,255,0.25); border-radius:10px; }
+
+/* ══ GAME CARD ══ */
+.game-card {
+  flex:0 0 260px; background:rgba(10,10,26,0.85);
+  border-radius:16px; overflow:hidden; position:relative;
+  scroll-snap-align:start; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.07);
+  transition:transform 0.32s cubic-bezier(0.23,1,0.32,1), border-color 0.32s, box-shadow 0.32s;
+  animation:cardIn 0.45s ease backwards;
+}
+.game-card:nth-child(2){animation-delay:.07s}
+.game-card:nth-child(3){animation-delay:.14s}
+.game-card:nth-child(4){animation-delay:.21s}
+.game-card:nth-child(5){animation-delay:.28s}
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(16px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.game-card:hover { transform:translateY(-7px) scale(1.03); }
+
+/* card visual */
+.card-visual {
+  width:100%; height:180px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; flex-shrink:0;
+}
+
+/* card info */
+.card-info { padding:15px 16px 14px; }
+.card-cat {
+  font-family:'Orbitron',monospace; font-size:0.55rem;
+  letter-spacing:4px; text-transform:uppercase; opacity:0.75; margin-bottom:5px;
+}
+.card-title {
+  font-family:'Rajdhani',sans-serif; font-size:1.18rem;
+  font-weight:700; line-height:1.2; margin-bottom:6px;
+}
+.card-desc { font-size:0.78rem; color:var(--dim); line-height:1.4; margin-bottom:12px; }
+.card-footer { display:flex; align-items:center; justify-content:space-between; }
+.card-play {
+  font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:2px;
+  padding:6px 14px; border-radius:20px; border:1px solid;
+  cursor:pointer; background:transparent; transition:all 0.2s; text-transform:uppercase;
+  opacity:0; transform:translateX(-6px); transition:opacity 0.3s, transform 0.3s;
+}
+.game-card:hover .card-play { opacity:1; transform:translateX(0); }
+.card-badge {
+  font-family:'Orbitron',monospace; font-size:0.52rem; font-weight:700;
+  letter-spacing:1px; padding:3px 9px; border-radius:4px; text-transform:uppercase;
+}
+
+/* ══════════════════════════════════════════
+   ANIMATED CARD VISUALS
+══════════════════════════════════════════ */
+
+/* RESPIRACIÓN EN CALMA */
+.anim-breath { background:radial-gradient(ellipse at 50% 60%,#001a2c,#000510); }
+.breath-circle {
+  width:74px; height:74px; border-radius:50%;
+  background:radial-gradient(circle,rgba(0,245,255,0.2),transparent 70%);
+  border:2px solid rgba(0,245,255,0.5);
+  box-shadow:0 0 28px rgba(0,245,255,0.3); animation:breathA 4s ease-in-out infinite; position:relative;
+}
+.breath-circle::after {
+  content:''; position:absolute; inset:-18px; border-radius:50%;
+  border:1px solid rgba(0,245,255,0.12); animation:breathA 4s ease-in-out infinite 0.5s;
+}
+@keyframes breathA { 0%,100%{transform:scale(0.85);opacity:0.7} 50%{transform:scale(1.2);opacity:1} }
+
+/* APNEA */
+.anim-apnea { background:linear-gradient(180deg,#001020,#000510); }
+.bubble-wrap { position:absolute; inset:0; overflow:hidden; }
+.bubble {
+  position:absolute; bottom:-20px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(0,245,255,0.6),rgba(0,245,255,0.1));
+  border:1px solid rgba(0,245,255,0.4); animation:bubbleUp linear infinite;
+}
+.b1{width:12px;height:12px;left:20%;animation-duration:3.2s;animation-delay:0s}
+.b2{width:8px;height:8px;left:45%;animation-duration:4s;animation-delay:1s}
+.b3{width:16px;height:16px;left:70%;animation-duration:3.6s;animation-delay:0.5s}
+.b4{width:6px;height:6px;left:35%;animation-duration:5s;animation-delay:2s}
+.b5{width:10px;height:10px;left:80%;animation-duration:4.5s;animation-delay:1.5s}
+@keyframes bubbleUp { 0%{transform:translateY(0) scale(1);opacity:0.8} 100%{transform:translateY(-220px) scale(0.3);opacity:0} }
+.diver-icon {
+  font-size:2.6rem; position:relative; z-index:2;
+  animation:diverF 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 10px rgba(0,245,255,0.5));
+}
+@keyframes diverF { 0%,100%{transform:translateY(-4px) rotate(-3deg)} 50%{transform:translateY(4px) rotate(3deg)} }
+
+/* TORRES DE HANÓI */
+.anim-hanoi { background:linear-gradient(180deg,#0a0014,#040008); }
+.hanoi-scene { position:relative; width:170px; height:112px; }
+.h-base { position:absolute; bottom:0; left:0; right:0; height:3px; background:linear-gradient(90deg,transparent,#00f5ff,#ff0090,#00f5ff,transparent); box-shadow:0 0 8px #00f5ff; }
+.h-peg  { position:absolute; bottom:3px; width:5px; border-radius:3px 3px 0 0; background:rgba(255,255,255,0.12); height:76px; }
+.hp1{left:16px}.hp2{left:calc(50% - 2.5px)}.hp3{right:16px}
+.h-disk { position:absolute; height:11px; border-radius:3px; animation:diskF 2s ease-in-out infinite alternate; }
+.hd1{width:48px;background:linear-gradient(90deg,#ff1744,#ff5177);box-shadow:0 0 7px rgba(255,23,68,0.6);left:calc(16px - 21px);bottom:3px}
+.hd2{width:34px;background:linear-gradient(90deg,#ffe600,#ffb300);box-shadow:0 0 7px rgba(255,230,0,0.6);left:calc(16px - 14px);bottom:15px}
+.hd3{width:20px;background:linear-gradient(90deg,#39ff14,#00c400);box-shadow:0 0 7px rgba(57,255,20,0.6);left:calc(16px - 7px);bottom:27px}
+.hd4{width:42px;background:linear-gradient(90deg,#00f5ff,#006699);box-shadow:0 0 7px rgba(0,245,255,0.6);left:calc(50% - 21px);bottom:3px;animation-delay:.3s}
+.hd5{width:28px;background:linear-gradient(90deg,#aa00ff,#6600cc);box-shadow:0 0 7px rgba(170,0,255,0.6);right:calc(16px - 20px);bottom:3px;animation-delay:.6s}
+@keyframes diskF { from{transform:translateY(0)} to{transform:translateY(-3px)} }
+
+/* SIMÓN */
+.anim-simon { background:radial-gradient(ellipse at 50% 50%,#0a0010,#040008); }
+.simon-mini { position:relative; width:112px; height:112px; }
+.sm-btn { position:absolute; width:52px; height:52px; border-radius:50%; animation:simonSeq 2s ease-in-out infinite; }
+.sm-r{top:2px;left:2px;background:radial-gradient(circle at 35% 35%,#ff5177,#c4001a);animation-delay:0s}
+.sm-b{top:2px;right:2px;background:radial-gradient(circle at 65% 35%,#64d8ff,#006db3);animation-delay:.5s}
+.sm-g{bottom:2px;left:2px;background:radial-gradient(circle at 35% 65%,#69ff9b,#00a152);animation-delay:1s}
+.sm-y{bottom:2px;right:2px;background:radial-gradient(circle at 65% 65%,#ffff72,#c7a500);animation-delay:1.5s}
+@keyframes simonSeq { 0%,30%,100%{filter:brightness(0.2) saturate(0.3)} 15%{filter:brightness(1.5) saturate(1.3)} }
+.sm-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:28px; height:28px; border-radius:50%; background:#04040f; border:2px solid rgba(255,255,255,0.1); display:grid; place-items:center; font-size:0.42rem; font-family:'Orbitron',monospace; color:var(--dim); z-index:2; }
+
+/* LUCES APAGADAS */
+.anim-lights { background:linear-gradient(135deg,#0a0800,#040400); }
+.lights-grid { display:grid; grid-template-columns:repeat(5,22px); gap:4px; position:relative; z-index:2; }
+.lg { width:22px; height:22px; border-radius:4px; background:#0d0d20; border:1px solid #1a1a30; transition:all 0.4s; }
+.lg.on { background:radial-gradient(circle at 40% 35%,#fff7a0,#ffe600 60%,#ffb300); border-color:rgba(255,230,0,0.8); box-shadow:0 0 9px rgba(255,230,0,0.7); }
+
+/* 15-PUZZLE */
+.anim-puzzle { background:linear-gradient(135deg,#050515,#080820); }
+.puzz-grid { display:grid; grid-template-columns:repeat(4,26px); gap:3px; position:relative; z-index:2; }
+.pc { width:26px; height:26px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.58rem; font-weight:900; border:1px solid rgba(0,245,255,0.2); background:rgba(0,245,255,0.08); transition:all 0.3s; }
+.pc.empty { background:rgba(0,0,0,0.4); border:1px dashed rgba(0,245,255,0.1); }
+.pc.pulse { animation:pcP 0.4s ease; }
+@keyframes pcP { 0%{transform:scale(0.7);opacity:0.5} 100%{transform:scale(1);opacity:1} }
+
+/* STROOP */
+.anim-stroop { background:radial-gradient(ellipse at 50% 50%,#0a0510,#040208); }
+.stroop-demo { display:flex; flex-direction:column; gap:6px; position:relative; z-index:2; }
+.sd-word { font-family:'Orbitron',monospace; font-size:.92rem; font-weight:900; letter-spacing:3px; padding:6px 14px; border-radius:6px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); text-align:center; animation:wordP 2s ease-in-out infinite alternate; }
+@keyframes wordP { from{filter:brightness(0.7)} to{filter:brightness(1.3)} }
+
+/* SUDOKU */
+.anim-sudoku { background:linear-gradient(135deg,#001a10,#000d08); }
+.sg-mini { display:grid; grid-template-columns:repeat(4,24px); gap:3px; position:relative; z-index:2; }
+.sgc { width:24px; height:24px; border-radius:4px; background:rgba(57,255,20,0.08); border:1px solid rgba(57,255,20,0.18); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.6rem; font-weight:700; color:rgba(57,255,20,0.5); }
+.sgc.f { background:rgba(57,255,20,0.14); border-color:rgba(57,255,20,0.45); color:#39ff14; }
+.sgc.hl { background:rgba(57,255,20,0.28); border-color:#39ff14; color:#39ff14; box-shadow:0 0 10px rgba(57,255,20,0.5); animation:cellP .4s ease; }
+@keyframes cellP { 0%{transform:scale(0.7)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+
+/* WORDLE */
+.anim-wordle { background:linear-gradient(135deg,#050a05,#040804); }
+.wordle-demo { display:flex; flex-direction:column; gap:4px; z-index:2; }
+.wd-row { display:flex; gap:4px; }
+.wd-cell { width:24px; height:26px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.6rem; font-weight:900; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); }
+.wc { background:rgba(57,255,20,0.15);  border-color:rgba(57,255,20,0.5);  color:#39ff14; box-shadow:0 0 6px rgba(57,255,20,0.3); }
+.wp { background:rgba(255,230,0,0.15);  border-color:rgba(255,230,0,0.5);  color:#ffe600; box-shadow:0 0 6px rgba(255,230,0,0.3); }
+.wa { background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.1); color:var(--dim); }
+
+/* AHORCADO */
+.anim-ahorcado { background:linear-gradient(135deg,#0a0800,#050300); }
+
+/* GATITO CRUZA */
+.anim-gcruz { background:linear-gradient(180deg,#001520,#000810); }
+.gcruz-lane { height:22px; border-radius:4px; display:flex; align-items:center; padding:0 8px; }
+.lane-water { background:rgba(0,100,200,0.18); border:1px solid rgba(0,150,255,0.2); }
+.lane-road  { background:rgba(20,20,30,0.5);   border:1px solid rgba(255,255,255,0.06); }
+.lane-safe  { background:rgba(0,50,20,0.4);    border:1px solid rgba(57,255,20,0.1); }
+
+/* PONG TRON */
+.anim-pong { background:#000810; overflow:hidden; }
+.pong-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(0,180,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,255,0.035) 1px,transparent 1px); background-size:20px 20px; }
+.pong-pad  { position:absolute; width:10px; border-radius:5px; }
+.pad-left  { left:12px;  background:#00f5ff; box-shadow:0 0 12px #00f5ff; animation:padL 1.8s ease-in-out infinite alternate; }
+.pad-right { right:12px; background:#ff0090; box-shadow:0 0 12px #ff0090; animation:padR 1.8s ease-in-out infinite alternate-reverse; }
+@keyframes padL { from{top:30%;height:30%} to{top:48%;height:26%} }
+@keyframes padR { from{top:44%;height:26%} to{top:22%;height:32%} }
+.pong-ball { position:absolute; width:10px; height:10px; border-radius:50%; background:#fff; box-shadow:0 0 16px #00f5ff,0 0 30px rgba(0,245,255,0.3); animation:ballMove 2.2s linear infinite; }
+@keyframes ballMove { 0%{left:18%;top:36%} 25%{left:74%;top:58%} 50%{left:74%;top:24%} 75%{left:18%;top:52%} 100%{left:18%;top:36%} }
+
+/* NEON RACER */
+.anim-racer { background:radial-gradient(ellipse at 50% 50%,#030a0f,#000508); overflow:hidden; }
+.racer-track {
+  position:absolute; inset:10px; border-radius:50%;
+  border:3px solid rgba(0,245,255,0.5);
+  box-shadow:0 0 14px rgba(0,245,255,0.4),inset 0 0 14px rgba(0,245,255,0.15);
+  animation:trackPulse 2s ease-in-out infinite;
+}
+@keyframes trackPulse{0%,100%{box-shadow:0 0 14px rgba(0,245,255,0.4),inset 0 0 14px rgba(0,245,255,0.1)}50%{box-shadow:0 0 28px rgba(0,245,255,0.7),inset 0 0 20px rgba(0,245,255,0.2)}}
+.racer-track-inner {
+  position:absolute; inset:28px; border-radius:50%;
+  border:2px solid rgba(0,245,255,0.25);
+  background:rgba(0,0,0,0.5);
+}
+.racer-car {
+  position:absolute; font-size:1.1rem; z-index:3;
+  animation:carOrbit 3s linear infinite;
+  transform-origin:0 0;
+  filter:drop-shadow(0 0 6px rgba(0,245,255,0.8));
+}
+@keyframes carOrbit {
+  0%  { transform:rotate(0deg)   translateX(44px) rotate(90deg);  }
+  25% { transform:rotate(90deg)  translateX(44px) rotate(90deg);  }
+  50% { transform:rotate(180deg) translateX(44px) rotate(90deg);  }
+  75% { transform:rotate(270deg) translateX(44px) rotate(90deg);  }
+  100%{ transform:rotate(360deg) translateX(44px) rotate(90deg);  }
+}
+.racer-trail {
+  position:absolute; width:4px; height:4px; border-radius:50%;
+  background:var(--c-breath); opacity:0;
+  animation:trailFadeR 3s linear infinite;
+}
+@keyframes trailFadeR {
+  0%  { opacity:0; }
+  10% { opacity:0.7; }
+  40% { opacity:0; }
+  100%{ opacity:0; }
+}
+.racer-finish { position:absolute; font-size:0.9rem; bottom:12px; right:14px; z-index:4; animation:flagWave .6s ease-in-out infinite alternate; }
+@keyframes flagWave{ from{transform:rotate(-8deg)}to{transform:rotate(8deg)} }
+
+/* 2048 */
+.anim-2048{ background:radial-gradient(ellipse at 50% 50%,#07120a,#030a05); }
+.tiles-mini{ display:grid; grid-template-columns:repeat(4,22px); gap:3px; position:relative; z-index:2; }
+.tm{ width:22px; height:22px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.42rem; font-weight:900; border:1px solid transparent; }
+.tm.e{ background:#0a1a0e; border-color:rgba(57,255,20,0.06); }
+.tm.t2  { background:#0a1e14; color:#39ff14; border-color:#39ff1455; box-shadow:0 0 6px rgba(57,255,20,0.4); }
+.tm.t4  { background:#0a1a2e; color:#00f5ff; border-color:#00f5ff55; box-shadow:0 0 6px rgba(0,245,255,0.4); }
+.tm.t8  { background:#1e0a00; color:#ff6600; border-color:#ff660055; box-shadow:0 0 6px rgba(255,102,0,0.4); }
+.tm.t16 { background:#1e0010; color:#ff0090; border-color:#ff009055; box-shadow:0 0 6px rgba(255,0,144,0.4); }
+.tm.t32 { background:#0e0028; color:#aa00ff; border-color:#aa00ff55; box-shadow:0 0 6px rgba(170,0,255,0.4); }
+.tm.t64 { background:#1e0000; color:#ff1744; border-color:#ff174455; box-shadow:0 0 6px rgba(255,23,68,0.4); }
+.tm.t128{ background:#1a1400; color:#ffe600; border-color:#ffe60055; box-shadow:0 0 8px rgba(255,230,0,0.5); }
+.tm.t256{ background:#001818; color:#00f5ff; border-color:#00f5ff77; box-shadow:0 0 8px rgba(0,245,255,0.6); animation:tmPulse 1.5s ease-in-out infinite alternate; }
+@keyframes tmPulse{ from{box-shadow:0 0 6px rgba(0,245,255,0.4)}to{box-shadow:0 0 14px rgba(0,245,255,0.8)} }
+
+/* NONOGRAMA */
+.anim-nono{ background:radial-gradient(ellipse at 50% 50%,#07120a,#030a05); }
+.nono-mini{ display:grid; grid-template-columns:repeat(5,18px); gap:2px; position:relative; z-index:2; }
+.nc{ width:18px; height:18px; border-radius:3px; background:#0a1a0e; border:1px solid rgba(57,255,20,0.1); transition:all 0.4s; }
+.nc.on{ background:var(--c-sudoku,#39ff14); border-color:rgba(57,255,20,0.6); box-shadow:0 0 8px rgba(57,255,20,0.5); animation:ncPop 0.4s ease; }
+@keyframes ncPop{ 0%{transform:scale(0.7)}60%{transform:scale(1.15)}100%{transform:scale(1)} }
+
+/* GATITO NINJA */
+.anim-ninja { background:linear-gradient(180deg,#08040f,#040208); overflow:hidden; }
+.ninja-floor { position:absolute; bottom:0; left:0; right:0; height:30%; background:linear-gradient(180deg,#1a0f32,#100828); border-top:2px solid rgba(255,0,144,0.4); }
+.ninja-cat   { position:absolute; font-size:2.4rem; bottom:30%; left:22%; animation:ninjaRun .5s ease-in-out infinite alternate; filter:drop-shadow(0 0 10px rgba(0,245,255,0.5)); z-index:3; }
+@keyframes ninjaRun { from{transform:translateY(0) rotate(-3deg)} to{transform:translateY(-6px) rotate(3deg)} }
+.ninja-enemy { position:absolute; font-size:1.6rem; animation:enemyApproach linear infinite; z-index:2; }
+.ne1{ bottom:30%; animation-duration:3.2s; }
+.ne2{ bottom:45%; animation-duration:4s; animation-delay:1.5s; }
+@keyframes enemyApproach { from{right:-10%} to{right:110%} }
+.ninja-shuriken { position:absolute; font-size:1rem; bottom:36%; animation:shurikenFly 1.5s linear infinite; z-index:4; }
+@keyframes shurikenFly { from{left:32%;transform:rotate(0deg)} to{left:95%;transform:rotate(720deg)} }
+
+/* ══ FOOTER ══ */
+footer {
+  position:relative; z-index:2; text-align:center;
+  padding:48px 5%; border-top:1px solid var(--pb); margin-top:40px;
+}
+.footer-logo {
+  font-family:'Orbitron',monospace; font-size:1rem; font-weight:900;
+  background:linear-gradient(90deg,var(--c-breath),var(--c-brain));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  margin-bottom:8px;
+}
+.footer-text { font-size:0.82rem; color:var(--dim); letter-spacing:2px; }
+.footer-text i { color:var(--c-brain); filter:drop-shadow(0 0 5px rgba(255,0,144,0.5)); }
+
+.corner { position:fixed; z-index:50; width:48px; height:48px; pointer-events:none; }
+.corner-tl { top:0; left:0; border-top:2px solid var(--c-breath); border-left:2px solid var(--c-breath); }
+.corner-br { bottom:0; right:0; border-bottom:2px solid var(--c-brain); border-right:2px solid var(--c-brain); }
+
+@media(max-width:600px) {
+  .game-card { flex:0 0 220px; }
+  .card-visual { height:150px; }
+  .hero h1 { font-size:1.8rem; }
+  .logo-sub { display:none; }
+  .stat { padding:0 14px; }
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-br"></div>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-gamepad"></i></div>
+      <div>
+        <div class="logo-text">CristoPlay</div>
+        <div class="logo-sub">Game Station</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <div class="header-badge">EN LÍNEA</div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Bienvenido</div>
+    <h1>Elige tu <span class="hl">aventura</span></h1>
+    <p class="hero-sub">Tu espacio personal de juegos &amp; bienestar</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val">16</div><div class="stat-lbl">Juegos</div></div>
+    <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Categorías</div></div>
+    <div class="stat"><div class="stat-val" id="horaVal">--</div><div class="stat-lbl">Hora</div></div>
+    <div class="stat"><div class="stat-val">∞</div><div class="stat-lbl">Diversión</div></div>
+  </div>
+
+  <main id="main"></main>
+
+  <footer>
+    <div class="footer-logo">⬡ CristoPlay</div>
+    <div class="footer-text">Hecho con <i class="fa-solid fa-heart"></i> con amor · Juega, respira, disfruta</div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <a href="sobre-nosotros.html"      style="font-size:0.6rem;letter-spacing:2px;color:var(--dim);text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:5px;transition:all 0.2s;" onmouseover="this.style.color='var(--c-breath)'" onmouseout="this.style.color='var(--dim)'">Acerca de</a>
+      <a href="contacto.html"            style="font-size:0.6rem;letter-spacing:2px;color:var(--dim);text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:5px;transition:all 0.2s;" onmouseover="this.style.color='var(--c-breath)'" onmouseout="this.style.color='var(--dim)'">Contacto</a>
+      <a href="privacidad.html"          style="font-size:0.6rem;letter-spacing:2px;color:var(--dim);text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:5px;transition:all 0.2s;" onmouseover="this.style.color='var(--c-breath)'" onmouseout="this.style.color='var(--dim)'">Política de Privacidad</a>
+      <a href="cookies.html"             style="font-size:0.6rem;letter-spacing:2px;color:var(--dim);text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:5px;transition:all 0.2s;" onmouseover="this.style.color='var(--c-breath)'" onmouseout="this.style.color='var(--dim)'">Política de Cookies</a>
+      <a href="terminos.html"            style="font-size:0.6rem;letter-spacing:2px;color:var(--dim);text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:5px;transition:all 0.2s;" onmouseover="this.style.color='var(--c-breath)'" onmouseout="this.style.color='var(--dim)'">Términos y Condiciones</a>
+    </div>
+    <div style="margin-top:12px;font-size:0.55rem;color:rgba(85,85,170,0.5);letter-spacing:2px;">© 2025 CristoPlay · Todos los derechos reservados</div>
+  </footer>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CATÁLOGO — 16 juegos en 4 categorías
+// ══════════════════════════════════════════════════════
+const SECTIONS = [
+  {
+    id:'brain', label:'Ingenio', icon:'fa-brain',
+    iconCls:'si-brain', lineCls:'sl-brain', titleColor:'var(--c-brain)',
+    games:[
+      {
+        url:'sudoku.html', title:'Sudoku Neón',
+        cat:'Lógica', desc:'4×4, 6×6 y 9×9 en un solo juego. Tres dificultades, pistas y validación automática.',
+        color:'var(--c-sudoku)', badge:{t:'3 EN 1',c:'top'},
+        anim:`<div class="card-visual anim-sudoku"><div class="sg-mini" id="sg4"></div></div>`
+      },
+      {
+        url:'torres-hanoi.html', title:'Torres de Hanói',
+        cat:'Lógica', desc:'Mueve todos los discos al tercer poste. 5 niveles y sistema de pistas automático.',
+        color:'var(--c-brain)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-hanoi"><div class="hanoi-scene"><div class="h-peg hp1"></div><div class="h-peg hp2"></div><div class="h-peg hp3"></div><div class="h-disk hd1"></div><div class="h-disk hd2"></div><div class="h-disk hd3"></div><div class="h-disk hd4"></div><div class="h-disk hd5"></div><div class="h-base"></div></div></div>`
+      },
+      {
+        url:'simon.html', title:'Simón',
+        cat:'Memoria', desc:'Memoriza y repite secuencias de colores. 3 velocidades y racha de victorias.',
+        color:'var(--c-brain)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-simon"><div class="simon-mini"><div class="sm-btn sm-r"></div><div class="sm-btn sm-b"></div><div class="sm-btn sm-g"></div><div class="sm-btn sm-y"></div><div class="sm-center">GO</div></div></div>`
+      },
+      {
+        url:'luces-apagadas.html', title:'Luces Apagadas',
+        cat:'Lógica', desc:'Apaga todas las luces tocando celdas. Algoritmo de pista matemático real incluido.',
+        color:'#ffe600', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-lights"><div class="lights-grid" id="lgrid"></div></div>`
+      },
+      {
+        url:'puzzle-15.html', title:'15-Puzzle',
+        cat:'Ingenio', desc:'Ordena los números deslizando piezas. Grillas 3×3, 4×4 y 5×5 con récord por nivel.',
+        color:'var(--c-breath)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-puzzle"><div class="puzz-grid" id="puzzgrid"></div></div>`
+      },
+      {
+        url:'stroop.html', title:'Stroop Challenge',
+        cat:'Concentración', desc:'Lee colores vs palabras contradictorias. Entrena el control cognitivo con 3 modos.',
+        color:'var(--c-brain)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-stroop"><div class="stroop-demo"><div class="sd-word" style="color:#ff1744">AZUL</div><div class="sd-word" style="color:#00f5ff">ROJO</div><div class="sd-word" style="color:#39ff14">MORADO</div></div></div>`
+      },
+      {
+        url:'2048.html', title:'2048',
+        cat:'Lógica', desc:'Une tiles del mismo número para duplicarlos. Llega al 2048. Undo y modo 4×4 · 5×5.',
+        color:'var(--c-sudoku)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-2048"><div class="tiles-mini">
+          <div class="tm t2">2</div><div class="tm t4">4</div><div class="tm e"></div><div class="tm t2">2</div>
+          <div class="tm e"></div><div class="tm t8">8</div><div class="tm t4">4</div><div class="tm e"></div>
+          <div class="tm t16">16</div><div class="tm e"></div><div class="tm t32">32</div><div class="tm t4">4</div>
+          <div class="tm e"></div><div class="tm t64">64</div><div class="tm t128">128</div><div class="tm t256">256</div>
+        </div></div>`
+      },
+      {
+        url:'nonograma.html', title:'Nonograma',
+        cat:'Picross', desc:'Pinta celdas siguiendo pistas numéricas. Lógica pura. 3 tamaños: 5×5, 10×10, 15×15.',
+        color:'var(--c-breath)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-nono"><div class="nono-mini" id="nonomini"></div></div>`
+      },
+    ]
+  },
+  {
+    id:'arcade', label:'Arcade', icon:'fa-gamepad',
+    iconCls:'si-arcade', lineCls:'sl-arcade', titleColor:'var(--c-arcade)',
+    games:[
+      {
+        url:'gatito-cruza.html', title:'Gatito Cruza',
+        cat:'Arcade clásico', desc:'Cruza la calle y el río esquivando autos y saltando troncos. Inspirado en Frogger.',
+        color:'var(--c-arcade)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-gcruz">
+          <div style="display:flex;flex-direction:column;gap:4px;z-index:2;position:relative;width:70%">
+            <div class="gcruz-lane lane-water"><span style="font-size:.9rem">🪵</span><span style="margin-left:auto;font-size:.9rem">🐢</span></div>
+            <div class="gcruz-lane lane-safe" style="justify-content:center"></div>
+            <div class="gcruz-lane lane-road"><span style="font-size:.9rem">🚗</span><span style="margin-left:auto;font-size:.85rem">🏎️</span></div>
+            <div class="gcruz-lane lane-road"><span style="font-size:.9rem">🚛</span></div>
+            <div class="gcruz-lane lane-safe" style="justify-content:center"><span style="font-size:1.1rem">😺</span></div>
+          </div>
+        </div>`
+      },
+      {
+        url:'pong-tron.html', title:'Pong Tron',
+        cat:'2 Jugadores + IA', desc:'Pong estilo Tron con trails de luz. Juega solo contra la IA o en pareja. Power-ups incluidos.',
+        color:'var(--c-breath)', badge:{t:'2P + IA',c:'top'},
+        anim:`<div class="card-visual anim-pong">
+          <div class="pong-grid"></div>
+          <div class="pong-pad pad-left"></div>
+          <div class="pong-pad pad-right"></div>
+          <div class="pong-ball"></div>
+        </div>`
+      },
+      {
+        url:'gatito-ninja.html', title:'Gatito Ninja',
+        cat:'Run & Gun', desc:'Corre, salta y lanza shurikens en una ciudad nocturna de neón. Oleadas crecientes.',
+        color:'var(--c-brain)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-ninja">
+          <div class="ninja-floor"></div>
+          <div class="ninja-cat">🐱</div>
+          <div class="ninja-enemy ne1">🐭</div>
+          <div class="ninja-enemy ne2">🦇</div>
+          <div class="ninja-shuriken">⭐</div>
+        </div>`
+      },
+      {
+        url:'neon-racer.html', title:'Neon Racer',
+        cat:'Carreras', desc:'Circuito cerrado vista aérea. Elige vueltas, color de auto y nitro. HUD con minimapa en tiempo real.',
+        color:'var(--c-breath)', badge:{t:'NITRO',c:'top'},
+        anim:`<div class="card-visual anim-racer">
+          <div class="racer-track"></div>
+          <div class="racer-track-inner"></div>
+          <div class="racer-car" style="left:50%;top:50%">🚗</div>
+          <div class="racer-trail" style="left:52%;top:12%;animation-delay:0s"></div>
+          <div class="racer-trail" style="left:80%;top:40%;animation-delay:.4s"></div>
+          <div class="racer-trail" style="left:65%;top:78%;animation-delay:.8s"></div>
+          <div class="racer-finish">🏁</div>
+        </div>`
+      },
+      {
+        url:'tron-jump.html', title:'Tron Jump',
+        cat:'Plataformas', desc:'Salta de plataforma en plataforma hacia arriba. Inclina el móvil para moverte. Estilo Whirlybird.',
+        color:'var(--c-breath)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-pong">
+          <div class="pong-grid"></div>
+          <div style="position:absolute;font-size:2rem;bottom:30%;left:44%;animation:ninjaRun .5s ease-in-out infinite alternate;filter:drop-shadow(0 0 10px rgba(0,245,255,.6));z-index:3">🏃</div>
+          <div style="position:absolute;width:60%;height:10px;border-radius:5px;background:#00f5ff;box-shadow:0 0 12px #00f5ff;bottom:25%;left:20%;"></div>
+          <div style="position:absolute;width:40%;height:10px;border-radius:5px;background:#00f5ff;box-shadow:0 0 12px #00f5ff;bottom:45%;left:45%;"></div>
+          <div style="position:absolute;width:50%;height:10px;border-radius:5px;background:#00f5ff;box-shadow:0 0 12px #00f5ff;bottom:65%;left:10%;"></div>
+        </div>`
+      },
+    ]
+  },
+  {
+    id:'words', label:'Palabras', icon:'fa-spell-check',
+    iconCls:'si-words', lineCls:'sl-words', titleColor:'var(--c-words)',
+    games:[
+      {
+        url:'wordle.html', title:'Wordle ES',
+        cat:'Vocabulario', desc:'Adivina la palabra de 5 letras en 6 intentos. +250 palabras en español.',
+        color:'var(--c-words)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-wordle"><div class="wordle-demo"><div class="wd-row"><div class="wd-cell wc">G</div><div class="wd-cell wa">A</div><div class="wd-cell wp">T</div><div class="wd-cell wa">O</div><div class="wd-cell wa">S</div></div><div class="wd-row"><div class="wd-cell wa">P</div><div class="wd-cell wc">A</div><div class="wd-cell wa">L</div><div class="wd-cell wp">O</div><div class="wd-cell wa">S</div></div><div class="wd-row"><div class="wd-cell">M</div><div class="wd-cell">U</div><div class="wd-cell">N</div><div class="wd-cell">D</div><div class="wd-cell">O</div></div></div></div>`
+      },
+      {
+        url:'ahorcado.html', title:'Ahorcado Temático',
+        cat:'Vocabulario', desc:'8 categorías temáticas con pistas visuales. Nivel niños y nivel avanzado.',
+        color:'var(--c-words)', badge:{t:'NUEVO',c:'nuevo'},
+        anim:`<div class="card-visual anim-ahorcado" style="background:linear-gradient(135deg,#0a0800,#050400)">
+          <svg viewBox="0 0 160 180" width="110" style="z-index:2;position:relative">
+            <line x1="20" y1="170" x2="140" y2="170" stroke="rgba(255,230,0,0.45)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="50" y1="170" x2="50" y2="20"  stroke="rgba(255,230,0,0.45)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="50" y1="20"  x2="100" y2="20"  stroke="rgba(255,230,0,0.45)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="100" y1="20" x2="100" y2="42"  stroke="rgba(255,230,0,0.3)"  stroke-width="2" stroke-linecap="round"/>
+            <circle cx="100" cy="57" r="14" fill="none" stroke="rgba(255,0,144,0.75)" stroke-width="2.5"/>
+            <line x1="100" y1="71" x2="100" y2="110" stroke="rgba(255,0,144,0.75)" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="100" y1="83" x2="82"  y2="100" stroke="rgba(255,0,144,0.75)" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="100" y1="83" x2="118" y2="100" stroke="rgba(255,0,144,0.75)" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>`
+      },
+    ]
+  },
+  {
+    id:'breath', label:'Respiración', icon:'fa-wind',
+    iconCls:'si-breath', lineCls:'sl-breath', titleColor:'var(--c-breath)',
+    games:[
+      {
+        url:'INHALAEXAHALA.html', title:'Respiración Cósmica',
+        cat:'Bienestar', desc:'Técnicas guiadas: calma, 4-7-8 y box breathing. Con astronauta animado y guía de voz.',
+        color:'var(--c-breath)', badge:{t:'MEJORADO',c:'nuevo'},
+        anim:`<div class="card-visual anim-breath"><div class="breath-circle"></div></div>`
+      },
+      {
+        url:'APNEA.html', title:'Océano Profundo',
+        cat:'Apnea', desc:'Entrena la resistencia de tus pulmones buceando. Criaturas marinas y 4 modos de juego.',
+        color:'var(--c-breath)', badge:{t:'MEJORADO',c:'nuevo'},
+        anim:`<div class="card-visual anim-apnea"><div class="bubble-wrap"><div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div><div class="bubble b4"></div><div class="bubble b5"></div></div><div class="diver-icon">🤿</div></div>`
+      },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════════════════
+// BUILD ALL SECTIONS & CAROUSELS
+// ══════════════════════════════════════════════════════
+function buildAll() {
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  SECTIONS.forEach(sec => {
+    // Section wrapper
+    const section = document.createElement('div');
+    section.className = 'section';
+
+    // Header
+    section.innerHTML = `
+      <div class="section-header">
+        <div class="section-icon ${sec.iconCls}"><i class="fa-solid ${sec.icon}"></i></div>
+        <div>
+          <div class="section-title" style="color:${sec.titleColor}">${sec.label}</div>
+        </div>
+        <div class="section-line ${sec.lineCls}"></div>
+        <div class="section-count">${sec.games.length} juego${sec.games.length>1?'s':''}</div>
+      </div>
+      <div class="carousel" id="carousel-${sec.id}"></div>
+    `;
+    main.appendChild(section);
+
+    // Cards
+    const carousel = section.querySelector(`#carousel-${sec.id}`);
+    sec.games.forEach((g, idx) => {
+      const card = document.createElement('div');
+      card.className = 'game-card';
+      card.style.animationDelay = (idx * 0.07) + 's';
+
+      // Hover glow
+      card.addEventListener('mouseenter', () => {
+        card.style.borderColor = g.color + '55';
+        card.style.boxShadow   = `0 18px 44px rgba(0,0,0,0.75), 0 0 28px ${g.color}18`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.borderColor = '';
+        card.style.boxShadow   = '';
+      });
+
+      const badgeHTML = g.badge
+        ? `<span class="card-badge" style="${
+            g.badge.c==='top'
+              ? 'background:linear-gradient(135deg,#ffe600,#ff9900);color:#000;box-shadow:0 0 10px rgba(255,230,0,0.4)'
+              : 'background:linear-gradient(135deg,#ff0090,#ff6600);color:#fff;box-shadow:0 0 10px rgba(255,0,144,0.4)'
+          }">${g.badge.t}</span>`
+        : '';
+
+      card.innerHTML = `
+        ${g.anim}
+        <div class="card-info">
+          <div class="card-cat" style="color:${g.color}">${g.cat}</div>
+          <div class="card-title">${g.title}</div>
+          <div class="card-desc">${g.desc}</div>
+          <div class="card-footer">
+            <button class="card-play" style="color:${g.color};border-color:${g.color}44">▶ Jugar</button>
+            ${badgeHTML}
+          </div>
+        </div>`;
+
+      card.addEventListener('click', () => window.open(g.url, '_blank'));
+      card.querySelector('.card-play').addEventListener('click', e => { e.stopPropagation(); window.open(g.url,'_blank'); });
+      carousel.appendChild(card);
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// ANIMATED MINI-GRIDS
+// ══════════════════════════════════════════════════════
+function buildAnimations() {
+  // Sudoku 4×4
+  const sg4 = document.getElementById('sg4');
+  if (sg4) {
+    [3,1,4,2,2,4,1,3,1,3,2,4,4,2,3,1].forEach(v => {
+      const c=document.createElement('div'); c.className='sgc f'; c.textContent=v; sg4.appendChild(c);
+    });
+    let i=0;
+    setInterval(()=>{
+      sg4.querySelectorAll('.sgc').forEach(c=>c.classList.remove('hl'));
+      sg4.querySelectorAll('.sgc')[i].classList.add('hl');
+      i=(i+1)%16;
+    }, 520);
+  }
+
+  // Lights Out
+  const lg = document.getElementById('lgrid');
+  if (lg) {
+    const pat=[0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0];
+    pat.forEach((v,i)=>{ const c=document.createElement('div'); c.className='lg'+(v?' on':''); lg.appendChild(c); });
+    let step=0;
+    setInterval(()=>{
+      const cells=lg.querySelectorAll('.lg');
+      if(step>=cells.length){ cells.forEach((c,i)=>{c.classList.toggle('on',pat[i]===1);}); step=0; return; }
+      cells[step].classList.toggle('on'); step++;
+    }, 260);
+  }
+
+  // 15-Puzzle
+  const pg = document.getElementById('puzzgrid');
+  if (pg) {
+    const nums=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+    const cols=['#ff1744','#ff6d00','#ffe600','#39ff14','#00f5ff','#2979ff','#aa00ff','#ff0090','#ff4081','#ffab40','#eeff41','#69ff47','#18ffff','#40c4ff','#e040fb',''];
+    nums.forEach((n,i)=>{
+      const c=document.createElement('div');
+      c.className='pc'+(n===0?' empty':'');
+      if(n>0){ c.textContent=n; c.style.color=cols[i]; c.style.borderColor=cols[i]+'44'; c.style.background=cols[i]+'14'; }
+      pg.appendChild(c);
+    });
+    const slidable=[3,7,11,14]; let si=0;
+    setInterval(()=>{
+      pg.querySelectorAll('.pc').forEach(c=>c.classList.remove('pulse'));
+      pg.querySelectorAll('.pc')[slidable[si%slidable.length]].classList.add('pulse');
+      si++;
+    }, 900);
+  }
+
+  // Nonograma — heart pattern animated cell by cell
+  const nm = document.getElementById('nonomini');
+  if (nm) {
+    const heart = [0,1,1,1,0, 1,1,0,1,1, 1,0,0,0,1, 0,1,0,1,0, 0,0,1,0,0];
+    heart.forEach(v => {
+      const c = document.createElement('div');
+      c.className = 'nc' + (v ? ' on' : '');
+      nm.appendChild(c);
+    });
+    let ni = 0;
+    setInterval(() => {
+      const cells = nm.querySelectorAll('.nc');
+      cells.forEach((c,i) => c.classList.toggle('on', heart[i]===1 && i<=ni));
+      ni = (ni + 1) % (heart.length + 6);
+      if (ni === 0) cells.forEach(c => c.classList.remove('on'));
+    }, 180);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HORA
+// ══════════════════════════════════════════════════════
+function updateHora() {
+  const n=new Date();
+  document.getElementById('horaVal').textContent =
+    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+updateHora(); setInterval(updateHora, 10000);
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+buildAll();
+buildAnimations();
+</script>
+</body>
+</html>

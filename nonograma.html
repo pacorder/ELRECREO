@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="google-adsense-account" content="ca-pub-2358850294363122">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2358850294363122" crossorigin="anonymous"></script>
+<title>Nonograma Neón • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ══ ROOT — idéntico al Sudoku ══ */
+:root {
+  --bg:#07120a; --bg2:#0d1f12;
+  --cell-off:#0a1a0e; --cell-on:#0f2814;
+  --neon:#39ff14; --neon2:#00f5a0;
+  --neon-dim:rgba(57,255,20,0.15);
+  --neon-glow:0 0 12px rgba(57,255,20,0.6),0 0 30px rgba(57,255,20,0.25);
+  --yellow:#ffe600; --cyan:#00f5ff; --pink:#ff0090;
+  --red:#ff1744; --dim:#2a5030; --text:#c8ffc8;
+  --pb:rgba(57,255,20,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;user-select:none;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(57,255,20,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(57,255,20,0.025) 1px,transparent 1px);background-size:48px 48px;animation:gd 25s linear infinite;}
+@keyframes gd{to{background-position:0 48px;}}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 700px 500px at 50% 30%,rgba(57,255,20,0.04) 0%,transparent 70%);}
+.scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.1) 2px,rgba(0,0,0,0.1) 4px);}
+#app{position:relative;z-index:2;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── HEADER ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 5%;border-bottom:1px solid var(--pb);background:rgba(7,18,10,0.93);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50;}
+.back-btn{display:flex;align-items:center;gap:8px;font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:3px;color:var(--dim);text-decoration:none;padding:8px 13px;border:1px solid var(--pb);border-radius:6px;transition:all 0.2s;}
+.back-btn:hover{color:var(--neon);border-color:rgba(57,255,20,0.4);}
+.h-center{display:flex;flex-direction:column;align-items:center;}
+.h-title{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;letter-spacing:4px;background:linear-gradient(90deg,var(--neon),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 8px rgba(57,255,20,0.4));}
+.h-sub{font-size:0.58rem;letter-spacing:4px;color:var(--dim);text-transform:uppercase;}
+.h-timer{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--neon);text-shadow:var(--neon-glow);text-align:right;}
+.h-timer-lbl{font-size:0.55rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+
+/* ── LEVEL BAR ── */
+.level-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 5%;flex-wrap:wrap;}
+.lv-label{font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+.lv-btn{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;letter-spacing:2px;padding:8px 18px;border-radius:8px;cursor:pointer;border:1px solid var(--pb);background:rgba(57,255,20,0.04);color:var(--dim);transition:all 0.22s;}
+.lv-btn:hover{color:var(--text);border-color:rgba(57,255,20,0.4);}
+.lv-btn.active{background:rgba(57,255,20,0.12);color:var(--neon);border-color:rgba(57,255,20,0.6);box-shadow:var(--neon-glow);}
+
+/* ── INFO ROW ── */
+.info-row{display:flex;justify-content:center;gap:14px;padding:10px 5%;flex-wrap:wrap;}
+.chip{display:flex;align-items:center;gap:8px;background:rgba(57,255,20,0.05);border:1px solid var(--pb);border-radius:10px;padding:8px 14px;}
+.chip-val{font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:700;color:var(--neon);text-shadow:var(--neon-glow);}
+.chip-lbl{font-size:0.6rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
+
+/* ── STATUS BAR ── */
+.status-bar{text-align:center;padding:6px 5%;min-height:30px;font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--dim);transition:color 0.3s;}
+.status-bar.ok{color:var(--neon);}
+.status-bar.err{color:var(--red);animation:errFlash 0.3s ease 2;}
+.status-bar.hint{color:var(--yellow);}
+@keyframes errFlash{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* ── GAME AREA ── */
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4% 16px;gap:14px;}
+
+/* ── PROGRESS ── */
+.prog-wrap{display:flex;align-items:center;gap:12px;width:min(560px,92vw);}
+.prog-label{font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;white-space:nowrap;}
+.prog-bg{flex:1;height:4px;background:rgba(57,255,20,0.08);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--cyan));border-radius:4px;box-shadow:0 0 8px rgba(57,255,20,0.5);transition:width 0.4s ease;}
+.prog-pct{font-family:'Orbitron',monospace;font-size:0.6rem;color:var(--neon);white-space:nowrap;}
+
+/* ── GRID FRAME ── */
+.grid-frame{background:rgba(0,0,0,0.5);border:2px solid rgba(57,255,20,0.25);border-radius:16px;padding:12px;box-shadow:0 0 40px rgba(57,255,20,0.08),inset 0 0 30px rgba(0,0,0,0.5);position:relative;overflow:auto;max-width:92vw;}
+
+/* ── NONOGRAM TABLE ── */
+.nono-wrap{display:inline-block;}
+.nono-table{border-collapse:collapse;table-layout:fixed;}
+
+/* Clue cells */
+.clue-corner{width:var(--clue-w);height:var(--clue-h);}
+.clue-col{width:var(--cell-sz);height:var(--clue-h);vertical-align:bottom;padding-bottom:4px;}
+.clue-row{width:var(--clue-w);height:var(--cell-sz);text-align:right;padding-right:6px;vertical-align:middle;}
+.clue-inner{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;height:100%;}
+.clue-num{font-family:'Orbitron',monospace;font-size:var(--clue-fs);font-weight:700;color:var(--dim);line-height:1;white-space:nowrap;}
+.clue-num.solved{color:var(--neon);text-shadow:0 0 6px rgba(57,255,20,0.5);}
+.clue-row-inner{display:flex;flex-direction:row;align-items:center;justify-content:flex-end;gap:3px;width:100%;}
+
+/* Game cells */
+.gcell{
+  width:var(--cell-sz);height:var(--cell-sz);
+  background:var(--cell-off);
+  border:1px solid rgba(57,255,20,0.1);
+  cursor:pointer;position:relative;
+  transition:background 0.12s,box-shadow 0.12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.gcell:hover{background:rgba(57,255,20,0.08);}
+
+/* Box borders every 5 cells */
+.gcell.box-right {border-right:2px solid rgba(57,255,20,0.35)!important;}
+.gcell.box-bottom{border-bottom:2px solid rgba(57,255,20,0.35)!important;}
+
+/* States */
+.gcell.filled{
+  background:var(--neon);
+  box-shadow:var(--neon-glow);
+  border-color:rgba(57,255,20,0.8);
+}
+.gcell.filled::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.25) 0%,transparent 60%);
+}
+.gcell.flagged{background:rgba(255,230,0,0.15);border-color:rgba(255,230,0,0.5);}
+.gcell.flagged::after{content:'⚑';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:var(--flag-fs);color:var(--yellow);}
+.gcell.error-flash{animation:cellErr 0.4s ease;}
+@keyframes cellErr{0%,100%{background:rgba(255,23,68,0.12)}50%{background:rgba(255,23,68,0.35)}}
+.gcell.correct-flash{animation:cellOk 0.35s ease backwards;}
+@keyframes cellOk{0%{transform:scale(0.8);opacity:0.5}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
+/* Row/col highlight */
+.gcell.hl-row,.gcell.hl-col{background:rgba(57,255,20,0.05)!important;}
+.gcell.filled.hl-row,.gcell.filled.hl-col{background:var(--neon)!important;}
+
+/* Input mode toggle */
+.mode-row{display:flex;gap:10px;justify-content:center;}
+.mode-btn{font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:2px;padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--pb);background:rgba(57,255,20,0.04);color:var(--dim);transition:all 0.2s;display:flex;align-items:center;gap:6px;}
+.mode-btn:hover{color:var(--text);border-color:rgba(57,255,20,0.4);}
+.mode-btn.active{background:rgba(57,255,20,0.12);color:var(--neon);border-color:rgba(57,255,20,0.6);box-shadow:var(--neon-glow);}
+.mode-btn.active.flag-mode{background:rgba(255,230,0,0.1);color:var(--yellow);border-color:rgba(255,230,0,0.5);box-shadow:0 0 12px rgba(255,230,0,0.3);}
+
+/* ── CONTROLS ROW ── */
+.ctrl-row{display:flex;justify-content:center;gap:10px;padding:4px 5% 20px;flex-wrap:wrap;}
+.ctrl-btn{font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;padding:9px 16px;border-radius:8px;cursor:pointer;background:rgba(57,255,20,0.05);color:var(--dim);border:1px solid var(--pb);transition:all 0.2s;display:flex;align-items:center;gap:7px;}
+.ctrl-btn:hover{color:var(--text);border-color:rgba(57,255,20,0.4);}
+.ctrl-btn.warn:hover{color:var(--yellow);border-color:rgba(255,230,0,0.4);}
+.ctrl-btn.danger:hover{color:var(--red);border-color:rgba(255,23,68,0.4);}
+
+/* ── PARTICLE CANVAS ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:3;}
+
+/* ── WIN OVERLAY ── */
+.w-overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(7,18,10,0.94);backdrop-filter:blur(14px);padding:20px;}
+.w-overlay.show{display:flex;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.w-card{background:linear-gradient(135deg,rgba(57,255,20,0.08),rgba(0,245,160,0.05));border:1px solid rgba(57,255,20,0.3);border-radius:24px;padding:44px 52px;max-width:460px;width:100%;text-align:center;box-shadow:0 0 80px rgba(57,255,20,0.1);animation:cardIn .5s cubic-bezier(.23,1,.32,1) backwards;animation-delay:.1s;max-height:90vh;overflow-y:auto;}
+@keyframes cardIn{from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.w-emoji{font-size:3.5rem;margin-bottom:12px;display:block;animation:bounce .9s ease infinite alternate;}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.w-title{font-family:'Orbitron',monospace;font-size:1.7rem;font-weight:900;letter-spacing:3px;background:linear-gradient(90deg,var(--neon),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.w-sub{color:var(--dim);letter-spacing:2px;font-size:0.88rem;margin-bottom:24px;}
+.w-stats{display:flex;justify-content:center;gap:22px;margin-bottom:22px;}
+.w-stat{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.w-stat-val{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:var(--neon);text-shadow:var(--neon-glow);}
+.w-stat-lbl{font-size:0.58rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+.rec-banner{background:rgba(255,230,0,0.08);border:1px solid rgba(255,230,0,0.25);border-radius:8px;padding:8px 18px;margin-bottom:22px;font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:3px;color:var(--yellow);text-transform:uppercase;animation:recPulse 1s ease-in-out infinite;}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.w-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-primary{font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:3px;padding:13px 26px;border-radius:10px;cursor:pointer;background:linear-gradient(135deg,var(--neon),var(--neon2));color:#000;border:none;box-shadow:0 0 20px rgba(57,255,20,0.4);transition:all 0.2s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(57,255,20,0.6);}
+.btn-secondary{font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:3px;padding:13px 26px;border-radius:10px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--pb);transition:all 0.2s;}
+.btn-secondary:hover{color:var(--text);border-color:rgba(57,255,20,0.4);}
+
+/* ── HELP OVERLAY ── */
+.help-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(7,18,10,0.93);backdrop-filter:blur(14px);padding:20px;}
+.help-overlay.show{display:flex;animation:fadeIn .3s ease;}
+.h-card{background:linear-gradient(135deg,rgba(57,255,20,0.06),rgba(0,245,160,0.04));border:1px solid rgba(57,255,20,0.18);border-radius:24px;padding:38px 42px;max-width:500px;width:100%;position:relative;max-height:90vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(57,255,20,0.2) transparent;animation:cardIn .4s cubic-bezier(.23,1,.32,1) backwards;}
+.h-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(57,255,20,0.05);border:1px solid var(--pb);cursor:pointer;color:var(--dim);display:grid;place-items:center;font-size:0.85rem;transition:all 0.2s;}
+.h-close:hover{color:var(--text);border-color:rgba(57,255,20,0.5);}
+.h-icon{font-size:2.5rem;text-align:center;margin-bottom:12px;display:block;}
+.h-title{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;letter-spacing:4px;text-align:center;background:linear-gradient(90deg,var(--neon),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.h-sub2{text-align:center;color:var(--dim);font-size:0.8rem;letter-spacing:2px;margin-bottom:22px;}
+.h-sec{margin-bottom:18px;}
+.h-sec-title{font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:4px;text-transform:uppercase;color:var(--neon);margin-bottom:9px;display:flex;align-items:center;gap:8px;}
+.h-sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(57,255,20,0.3),transparent);}
+.h-steps{display:flex;flex-direction:column;gap:8px;}
+.h-step{display:flex;align-items:flex-start;gap:12px;background:rgba(57,255,20,0.04);border:1px solid var(--pb);border-radius:10px;padding:10px 14px;}
+.h-num{font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:900;color:var(--neon);min-width:22px;text-align:center;}
+.h-txt{font-size:0.88rem;color:var(--text);line-height:1.5;}
+.h-txt b{color:var(--yellow);}
+.h-txt em{color:var(--neon);font-style:normal;font-weight:600;}
+.h-tip{background:rgba(255,230,0,0.05);border:1px solid rgba(255,230,0,0.2);border-radius:10px;padding:12px 14px;font-size:0.86rem;color:var(--text);line-height:1.5;}
+.h-tip b{color:var(--yellow);}
+.h-foot{margin-top:22px;}
+.hfbtn{width:100%;padding:13px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--neon),var(--neon2));color:#000;font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:900;letter-spacing:3px;transition:all 0.2s;}
+.hfbtn:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(57,255,20,0.4);}
+
+/* Example mini-nono in help */
+.mini-nono{display:inline-grid;gap:2px;margin-top:8px;}
+.mn-cell{width:18px;height:18px;border-radius:3px;border:1px solid rgba(57,255,20,0.2);background:var(--cell-off);}
+.mn-cell.on{background:var(--neon);box-shadow:0 0 6px rgba(57,255,20,0.5);}
+.mn-num{font-family:'Orbitron',monospace;font-size:0.55rem;color:var(--dim);text-align:center;}
+
+@media(max-width:480px){.h-card,.w-card{padding:26px 16px;}.w-title{font-size:1.4rem;}}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <header>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+    <div class="h-center">
+      <div class="h-title">NONOGRAMA</div>
+      <div class="h-sub">Picross · Lógica · 3 Tamaños</div>
+    </div>
+    <div style="text-align:right">
+      <div class="h-timer" id="timerVal">0:00</div>
+      <div class="h-timer-lbl">Tiempo</div>
+    </div>
+  </header>
+
+  <div class="level-bar">
+    <span class="lv-label">Tamaño</span>
+    <button class="lv-btn active" data-sz="5"  onclick="selectSize(5,this)">5 × 5</button>
+    <button class="lv-btn"        data-sz="10" onclick="selectSize(10,this)">10 × 10</button>
+    <button class="lv-btn"        data-sz="15" onclick="selectSize(15,this)">15 × 15</button>
+  </div>
+
+  <div class="info-row">
+    <div class="chip">
+      <i class="fa-solid fa-trophy" style="color:var(--yellow);font-size:.85rem"></i>
+      <div><div class="chip-val" id="recVal" style="color:var(--yellow)">—</div><div class="chip-lbl">Récord</div></div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-check" style="color:var(--neon);font-size:.85rem"></i>
+      <div><div class="chip-val" id="filledVal">0</div><div class="chip-lbl">Rellenas</div></div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-xmark" style="color:var(--red);font-size:.85rem"></i>
+      <div><div class="chip-val" id="errVal" style="color:var(--red)">0</div><div class="chip-lbl">Errores</div></div>
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar">Toca una celda para rellenarla · ⚑ para marcar dudas</div>
+
+  <div class="game-area">
+    <div class="prog-wrap">
+      <span class="prog-label">Progreso</span>
+      <div class="prog-bg"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <span class="prog-pct" id="progPct">0%</span>
+    </div>
+
+    <div class="mode-row">
+      <button class="mode-btn active" id="modeFill" onclick="setInputMode('fill')">
+        <i class="fa-solid fa-square"></i> Rellenar
+      </button>
+      <button class="mode-btn" id="modeFlag" onclick="setInputMode('flag')">
+        <i class="fa-solid fa-flag"></i> Bandera
+      </button>
+    </div>
+
+    <div class="grid-frame">
+      <div class="nono-wrap">
+        <table class="nono-table" id="nonoTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="ctrl-btn warn"   onclick="newPuzzle()"><i class="fa-solid fa-shuffle"></i> Nuevo</button>
+    <button class="ctrl-btn danger" onclick="resetPuzzle()"><i class="fa-solid fa-rotate-left"></i> Reiniciar</button>
+    <button class="ctrl-btn"        onclick="revealHint()"><i class="fa-solid fa-lightbulb"></i> Pista</button>
+    <button class="ctrl-btn"        onclick="document.getElementById('helpOverlay').classList.add('show')"><i class="fa-solid fa-circle-question"></i> ¿Cómo jugar?</button>
+  </div>
+</div>
+
+<!-- WIN OVERLAY -->
+<div class="w-overlay" id="winOverlay">
+  <div class="w-card">
+    <span class="w-emoji">🏆</span>
+    <div class="w-title">¡RESUELTO!</div>
+    <div class="w-sub">Nonograma completado</div>
+    <div class="w-stats">
+      <div class="w-stat"><div class="w-stat-val" id="winTime">0:00</div><div class="w-stat-lbl">Tiempo</div></div>
+      <div class="w-stat"><div class="w-stat-val" id="winErr">0</div><div class="w-stat-lbl">Errores</div></div>
+      <div class="w-stat"><div class="w-stat-val" id="winSize">5×5</div><div class="w-stat-lbl">Tamaño</div></div>
+    </div>
+    <div class="rec-banner" id="winRec" style="display:none">⚡ ¡NUEVO RÉCORD! ⚡</div>
+    <div class="w-btns">
+      <button class="btn-primary"   onclick="closeWin();newPuzzle()">▶ Nuevo puzzle</button>
+      <button class="btn-secondary" onclick="closeWin()">Ver solución</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP OVERLAY -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="h-card">
+    <button class="h-close" onclick="document.getElementById('helpOverlay').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+    <span class="h-icon">⬛</span>
+    <div class="h-title">NONOGRAMA</div>
+    <div class="h-sub2">Picross · Pinta la cuadrícula con lógica</div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">¿Qué es un nonograma?</div>
+      <div class="h-step" style="background:rgba(57,255,20,0.06);border-color:rgba(57,255,20,0.2)">
+        <div class="h-num">🎯</div>
+        <div class="h-txt">Un nonograma es un puzzle de lógica donde debes <b>pintar celdas</b> en una cuadrícula según los números que aparecen en los bordes. Los números indican <b>grupos de celdas rellenas consecutivas</b> en esa fila o columna.</div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Cómo leer las pistas</div>
+      <div class="h-steps">
+        <div class="h-step">
+          <div class="h-num">3</div>
+          <div class="h-txt">El número <b>3</b> en una fila significa que hay <em>exactamente 3 celdas rellenas consecutivas</em> en algún lugar de esa fila.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">2 1</div>
+          <div class="h-txt">Los números <b>2 1</b> significan: primero un grupo de <em>2 celdas</em>, luego al menos un espacio vacío, luego un grupo de <em>1 celda</em>.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">✓</div>
+          <div class="h-txt">Cuando una fila o columna está <b>correctamente completada</b>, sus pistas se iluminan en verde.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Controles</div>
+      <div class="h-steps">
+        <div class="h-step"><div class="h-num">1</div><div class="h-txt"><b>Modo Rellenar</b> — toca una celda para pintarla. Tócala de nuevo para borrarla.</div></div>
+        <div class="h-step"><div class="h-num">⚑</div><div class="h-txt"><b>Modo Bandera</b> — marca celdas que crees que deben estar vacías. Ayuda a recordar deducciones.</div></div>
+        <div class="h-step"><div class="h-num">💡</div><div class="h-txt"><b>Pista</b> — revela una celda correcta. Úsala cuando estés bloqueado.</div></div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Ejemplo</div>
+      <div class="h-tip">
+        💡 <b>Truco básico:</b> si una pista dice <b>5</b> en una fila de 5 celdas, todas deben estar rellenas. Si dice <b>4</b> en una fila de 5, al menos las 3 celdas del centro están garantizadas. ¡Empieza por las pistas más grandes!
+      </div>
+    </div>
+
+    <div class="h-foot">
+      <button class="hfbtn" onclick="document.getElementById('helpOverlay').classList.remove('show')">¡Entendido, a jugar!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// PUZZLE BANKS — verified nonograms
+// ══════════════════════════════════════════════════════
+const PUZZLES = {
+  5: [
+    // Each puzzle is a 5x5 binary grid (1=filled)
+    [[1,1,1,1,1],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,0,1],[1,1,1,1,1]],
+    [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+    [[1,0,1,0,1],[0,1,0,1,0],[1,0,1,0,1],[0,1,0,1,0],[1,0,1,0,1]],
+    [[1,1,0,0,0],[1,1,0,1,1],[0,0,0,1,1],[1,1,0,1,1],[1,1,0,0,0]],
+    [[0,0,1,0,0],[0,1,1,1,0],[1,1,1,1,1],[0,1,1,1,0],[0,0,1,0,0]],
+    [[1,1,1,0,0],[1,0,1,0,0],[1,1,1,1,1],[0,0,1,0,1],[0,0,1,1,1]],
+    [[0,1,1,1,0],[1,1,0,1,1],[1,0,0,0,1],[1,1,0,1,1],[0,1,1,1,0]],
+    [[1,0,0,0,1],[1,1,0,1,1],[1,0,1,0,1],[1,1,0,1,1],[1,0,0,0,1]],
+  ],
+  10: [
+    [[1,1,1,1,0,0,1,1,1,1],[1,0,0,1,0,0,1,0,0,1],[1,0,0,1,0,0,1,0,0,1],[1,1,1,1,0,0,1,1,1,1],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[1,1,1,1,0,0,1,1,1,1],[1,0,0,1,0,0,1,0,0,1],[1,0,0,1,0,0,1,0,0,1],[1,1,1,1,0,0,1,1,1,1]],
+    [[0,0,1,1,1,1,1,1,0,0],[0,1,1,0,0,0,0,1,1,0],[1,1,0,0,0,0,0,0,1,1],[1,0,0,1,1,1,1,0,0,1],[1,0,1,0,0,0,0,1,0,1],[1,0,1,0,0,0,0,1,0,1],[1,0,0,1,1,1,1,0,0,1],[1,1,0,0,0,0,0,0,1,1],[0,1,1,0,0,0,0,1,1,0],[0,0,1,1,1,1,1,1,0,0]],
+    [[1,0,0,0,1,1,0,0,0,1],[1,1,0,0,1,1,0,0,1,1],[0,1,1,0,1,1,0,1,1,0],[0,0,1,1,1,1,1,1,0,0],[1,1,1,1,0,0,1,1,1,1],[1,1,1,1,0,0,1,1,1,1],[0,0,1,1,1,1,1,1,0,0],[0,1,1,0,1,1,0,1,1,0],[1,1,0,0,1,1,0,0,1,1],[1,0,0,0,1,1,0,0,0,1]],
+    [[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,0,0,1,1,0,0],[0,1,1,0,0,0,0,1,1,0],[1,1,0,0,0,0,0,0,1,1],[1,1,0,0,0,0,0,0,1,1],[0,1,1,0,0,0,0,1,1,0],[0,0,1,1,0,0,1,1,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,0,1,1,0,0,0,0]],
+    [[1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,0,1],[1,0,1,0,0,0,0,1,0,1],[1,0,1,0,1,1,0,1,0,1],[1,0,1,0,1,1,0,1,0,1],[1,0,1,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,1,0,1],[1,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1]],
+  ],
+  15: [
+    // 15×15 — heart shape
+    (()=>{const g=Array.from({length:15},()=>Array(15).fill(0));const h=[[0,0,1,1,0,0,0,0,0,1,1,0,0,0,0],[0,1,1,1,1,0,0,0,1,1,1,1,0,0,0],[1,1,1,1,1,1,0,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,1,1,1,1,1,1,0,0],[0,0,0,1,1,1,1,1,1,1,1,1,0,0,0],[0,0,0,0,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]];return h;})(),
+    // Smiley face
+    (()=>{const g=Array.from({length:15},()=>Array(15).fill(0));[[1,1,3,3,1,1,1,1,1,1,11,11],[2,2,4,4,2,2,2,2,2,2,12,12],[5,6,7,8],[9,10,11,12,13]];
+    // Build smiley manually
+    const s=[[0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],[0,0,0,1,1,0,0,0,0,0,1,1,0,0,0],[0,0,1,0,0,0,0,0,0,0,0,0,1,0,0],[0,1,0,0,0,0,0,0,0,0,0,0,0,1,0],[0,1,0,0,1,1,0,0,0,1,1,0,0,1,0],[1,0,0,0,1,1,0,0,0,1,1,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],[0,1,0,1,0,0,0,0,0,0,0,1,0,1,0],[0,1,0,0,1,0,0,0,0,0,1,0,0,1,0],[0,0,1,0,0,1,1,1,1,1,0,0,1,0,0],[0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],[0,0,0,0,1,1,0,0,0,1,1,0,0,0,0],[0,0,0,0,0,0,1,1,1,0,0,0,0,0,0]];return s;})(),
+    // Arrow/chevron
+    (()=>{const a=[[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],[0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,1,1,1,0,1,1,1,0,0,0,0],[0,0,0,1,1,1,0,0,0,1,1,1,0,0,0],[0,0,1,1,1,0,0,0,0,0,1,1,1,0,0],[0,1,1,1,0,0,0,0,0,0,0,1,1,1,0],[1,1,1,0,0,0,0,1,0,0,0,0,1,1,1],[0,1,1,1,0,0,0,1,0,0,0,1,1,1,0],[0,0,1,1,1,0,0,1,0,0,1,1,1,0,0],[0,0,0,1,1,1,0,1,0,1,1,1,0,0,0],[0,0,0,0,1,1,1,1,1,1,1,0,0,0,0],[0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0]];return a;})(),
+  ],
+};
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let N = 5, solution = [], userGrid = [], errors = 0, hints = 0;
+let inputMode = 'fill';     // 'fill' | 'flag'
+let gameWon = false;
+let timerInt = null, elapsed = 0, timerStarted = false;
+let dragFill = null;        // value being painted in drag
+
+const recKey = n => `nono_rec_${n}`;
+const getRec  = n => { const v=localStorage.getItem(recKey(n)); return v?parseInt(v):null; };
+const setRec  = (n,v) => localStorage.setItem(recKey(n), v);
+
+// ══════════════════════════════════════════════════════
+// SIZE SELECTOR
+// ══════════════════════════════════════════════════════
+function selectSize(n, btn) {
+  N = n;
+  document.querySelectorAll('[data-sz]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  newPuzzle();
+}
+
+// ══════════════════════════════════════════════════════
+// PUZZLE INIT
+// ══════════════════════════════════════════════════════
+function newPuzzle() {
+  const bank = PUZZLES[N];
+  solution   = bank[Math.floor(Math.random()*bank.length)];
+  userGrid   = Array.from({length:N}, ()=>Array(N).fill(0)); // 0=empty,1=filled,2=flagged
+  errors = 0; hints = 0; gameWon = false;
+  stopTimer(); elapsed = 0; timerStarted = false;
+  document.getElementById('timerVal').textContent = '0:00';
+  document.getElementById('winOverlay').classList.remove('show');
+  setStatus('Toca una celda para rellenarla · ⚑ para marcar dudas','');
+  buildTable();
+  updateInfo();
+}
+
+function resetPuzzle() {
+  userGrid = Array.from({length:N}, ()=>Array(N).fill(0));
+  errors = 0;
+  stopTimer(); elapsed = 0; timerStarted = false;
+  document.getElementById('timerVal').textContent = '0:00';
+  renderAllCells();
+  updateInfo();
+  setStatus('Tablero reiniciado','');
+}
+
+// ══════════════════════════════════════════════════════
+// CLUE COMPUTATION
+// ══════════════════════════════════════════════════════
+function getClues(line) {
+  const groups = [];
+  let count = 0;
+  for (const v of line) {
+    if (v) count++;
+    else if (count) { groups.push(count); count=0; }
+  }
+  if (count) groups.push(count);
+  return groups.length ? groups : [0];
+}
+
+function isLineCorrect(userLine, solLine) {
+  return getClues(userLine.map((v,i)=>v===1?1:0)).join(',') === getClues(solLine).join(',');
+}
+
+function isLineFilled(userLine) {
+  // All cells are either correctly filled or correctly empty (no flags pending)
+  return userLine.every((v,i)=>(v===1)===!!solLine[i]);
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD TABLE DOM
+// ══════════════════════════════════════════════════════
+function buildTable() {
+  // Responsive cell size
+  const maxW    = Math.min(window.innerWidth * 0.86, 560);
+  const clueMax = Math.ceil(Math.max(...PUZZLES[N].map(s=>Math.max(
+    ...Array.from({length:N},(_,r)=>getClues(s[r]).length),
+    ...Array.from({length:N},(_,c)=>getClues(s.map(r=>r[c])).length)
+  ))));
+
+  const CELL = Math.floor((maxW) / (N + clueMax * 0.8));
+  const CLUE_CELL = Math.floor(CELL * 0.82);
+  const CLUE_W    = clueMax * (CLUE_CELL + 2);
+  const FS_CELL   = Math.max(8,  Math.floor(CELL * 0.3));
+  const FS_CLUE   = Math.max(7,  Math.floor(CLUE_CELL * 0.55));
+  const FLAG_FS   = Math.max(7,  Math.floor(CELL * 0.45));
+
+  // CSS variables
+  const tbl = document.getElementById('nonoTable');
+  tbl.style.setProperty('--cell-sz',  CELL+'px');
+  tbl.style.setProperty('--clue-w',   CLUE_W+'px');
+  tbl.style.setProperty('--clue-h',   CLUE_W+'px');
+  tbl.style.setProperty('--clue-fs',  FS_CLUE+'px');
+  tbl.style.setProperty('--flag-fs',  FLAG_FS+'px');
+  tbl.innerHTML = '';
+
+  const colClues = Array.from({length:N},(_,c)=>getClues(solution.map(r=>r[c])));
+  const rowClues = Array.from({length:N},(_,r)=>getClues(solution[r]));
+  const maxColH  = Math.max(...colClues.map(c=>c.length));
+
+  // ── Header rows (column clues) ──
+  for (let ci = 0; ci < maxColH; ci++) {
+    const tr = document.createElement('tr');
+    // Corner
+    if (ci === 0) {
+      const td = document.createElement('td');
+      td.className='clue-corner'; td.rowSpan=maxColH;
+      tr.appendChild(td);
+    }
+    // Column clue numbers
+    for (let c=0;c<N;c++) {
+      const td   = document.createElement('td');
+      td.className='clue-col';
+      td.id=`cc-${c}`;
+      const clue = colClues[c];
+      const offset = maxColH - clue.length;
+      if (ci >= offset) {
+        const num = document.createElement('span');
+        num.className='clue-num'; num.id=`cn-${c}-${ci-offset}`;
+        num.textContent = clue[ci-offset];
+        td.appendChild(num);
+      }
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+
+  // ── Game rows ──
+  for (let r=0;r<N;r++) {
+    const tr  = document.createElement('tr');
+
+    // Row clue
+    const rtd = document.createElement('td');
+    rtd.className='clue-row'; rtd.id=`rc-${r}`;
+    const inner = document.createElement('div');
+    inner.className='clue-row-inner';
+    rowClues[r].forEach((n,i)=>{
+      const span=document.createElement('span');
+      span.className='clue-num'; span.id=`rn-${r}-${i}`;
+      span.textContent=n; inner.appendChild(span);
+    });
+    rtd.appendChild(inner); tr.appendChild(rtd);
+
+    // Game cells
+    for (let c=0;c<N;c++) {
+      const td=document.createElement('td');
+      td.className='gcell';
+      td.id=`g-${r}-${c}`;
+      td.style.width=CELL+'px'; td.style.height=CELL+'px';
+      // Box borders every 5
+      if ((c+1)%5===0 && c<N-1) td.classList.add('box-right');
+      if ((r+1)%5===0 && r<N-1) td.classList.add('box-bottom');
+      // Events
+      td.addEventListener('mousedown',  e=>{ e.preventDefault(); startDrag(r,c); });
+      td.addEventListener('mouseenter', e=>{ if(e.buttons) continueDrag(r,c); else highlightLine(r,c); });
+      td.addEventListener('mouseleave', e=>{ if(!e.buttons) clearHighlight(); });
+      td.addEventListener('mouseup',    ()=>stopDrag());
+      td.addEventListener('touchstart', e=>{ e.preventDefault(); startDrag(r,c); },{passive:false});
+      td.addEventListener('touchmove',  e=>{ e.preventDefault(); const t=e.touches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); if(el&&el.id.startsWith('g-')){const[,rr,cc]=el.id.split('-'); continueDrag(+rr,+cc);} },{passive:false});
+      td.addEventListener('touchend',   ()=>stopDrag(),{passive:false});
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// DRAG PAINT
+// ══════════════════════════════════════════════════════
+function startDrag(r,c) {
+  if (!timerStarted) { timerStarted=true; startTimer(); }
+  if (gameWon) return;
+  const cur = userGrid[r][c];
+  if (inputMode==='fill')  dragFill = cur===1 ? 0 : 1;
+  else                     dragFill = cur===2 ? 0 : 2;
+  applyCell(r,c);
+}
+function continueDrag(r,c) { if(dragFill!==null) applyCell(r,c); }
+function stopDrag() { dragFill=null; }
+
+function applyCell(r,c) {
+  if (gameWon) return;
+  const prev = userGrid[r][c];
+  // Don't overwrite revealed hints
+  if (prev === 3) return;
+  userGrid[r][c] = dragFill;
+  renderCell(r,c);
+  // If filling, check for error
+  if (dragFill===1 && solution[r][c]===0) {
+    errors++;
+    document.getElementById(`g-${r}-${c}`).classList.add('error-flash');
+    tone(180,'sawtooth',.12,.2);
+    updateInfo();
+  } else if (dragFill===1) {
+    tone(440+(r+c)*12,'sine',.06,.07);
+  }
+  checkRowCol(r,c);
+  updateProgress();
+  checkWin();
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function renderCell(r,c) {
+  const el = document.getElementById(`g-${r}-${c}`);
+  if(!el) return;
+  const v = userGrid[r][c];
+  el.classList.remove('filled','flagged');
+  if      (v===1) el.classList.add('filled');
+  else if (v===2) el.classList.add('flagged');
+  else if (v===3) { el.classList.add('filled'); el.style.opacity='0.6'; } // hint
+}
+function renderAllCells() {
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) renderCell(r,c);
+  checkAllLines();
+}
+
+// ══════════════════════════════════════════════════════
+// LINE CHECK
+// ══════════════════════════════════════════════════════
+function checkRowCol(r,c) {
+  checkLine('row',r);
+  checkLine('col',c);
+}
+
+function checkLine(type, idx) {
+  const userLine = type==='row'
+    ? userGrid[idx].map(v=>v===1||v===3?1:0)
+    : Array.from({length:N},(_,r)=>userGrid[r][idx]===1||userGrid[r][idx]===3?1:0);
+  const solLine  = type==='row'
+    ? solution[idx]
+    : Array.from({length:N},(_,r)=>solution[r][idx]);
+
+  const solved = isLineCorrect(userLine, solLine);
+  if(type==='row') {
+    const clues = getClues(solution[idx]);
+    clues.forEach((_,i)=>{
+      const el=document.getElementById(`rn-${idx}-${i}`);
+      if(el) el.classList.toggle('solved', solved);
+    });
+  } else {
+    const clues = getClues(solution.map(row=>row[idx]));
+    clues.forEach((_,i)=>{
+      // Find span in column header
+      const spans = document.querySelectorAll(`[id^="cn-${idx}-"]`);
+      spans.forEach(s=>s.classList.toggle('solved',solved));
+    });
+  }
+}
+
+function checkAllLines() {
+  for(let r=0;r<N;r++) checkLine('row',r);
+  for(let c=0;c<N;c++) checkLine('col',c);
+}
+
+// ══════════════════════════════════════════════════════
+// WIN CHECK
+// ══════════════════════════════════════════════════════
+function checkWin() {
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) {
+    const u = userGrid[r][c]===1||userGrid[r][c]===3 ? 1 : 0;
+    if(u !== solution[r][c]) return;
+  }
+  // Won!
+  gameWon = true;
+  stopTimer();
+  const t   = elapsed;
+  const rec = getRec(N);
+  const isRec = rec===null || t < rec;
+  if(isRec) setRec(N,t);
+
+  // Animate cells
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) {
+    setTimeout(()=>{
+      document.getElementById(`g-${r}-${c}`)?.classList.add('correct-flash');
+    },(r*N+c)*18);
+  }
+  setTimeout(()=>{
+    document.getElementById('winTime').textContent = fmt(elapsed);
+    document.getElementById('winErr').textContent  = errors;
+    document.getElementById('winSize').textContent = `${N}×${N}`;
+    document.getElementById('winRec').style.display = isRec ? 'block':'none';
+    document.getElementById('winOverlay').classList.add('show');
+    spawnConfetti();
+    updateInfo();
+  }, N*N*18+300);
+}
+
+function closeWin() { document.getElementById('winOverlay').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════
+// HINT
+// ══════════════════════════════════════════════════════
+function revealHint() {
+  if(gameWon) return;
+  // Find first unfilled correct cell
+  const wrong=[];
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) {
+    if(solution[r][c]===1 && userGrid[r][c]!==1 && userGrid[r][c]!==3) wrong.push([r,c]);
+  }
+  if(!wrong.length) { setStatus('¡No quedan celdas por revelar!','ok'); return; }
+  const [r,c]=wrong[Math.floor(Math.random()*wrong.length)];
+  userGrid[r][c]=3; // hint marker
+  renderCell(r,c);
+  hints++;
+  checkRowCol(r,c); updateProgress(); updateInfo();
+  setStatus(`Pista revelada (${hints} usada${hints>1?'s':''})`, 'hint');
+  tone(660,'sine',.12,.2);
+  checkWin();
+}
+
+// ══════════════════════════════════════════════════════
+// PROGRESS / INFO
+// ══════════════════════════════════════════════════════
+function updateProgress() {
+  const total   = solution.reduce((s,r)=>s+r.reduce((a,v)=>a+v,0),0);
+  const correct = userGrid.reduce((s,r,ri)=>s+r.reduce((a,v,ci)=>a+(v===1||v===3?solution[ri][ci]:0),0),0);
+  const pct = total>0 ? Math.round(correct/total*100) : 0;
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progPct').textContent  = pct+'%';
+  const filled = userGrid.reduce((s,r)=>s+r.filter(v=>v===1||v===3).length,0);
+  document.getElementById('filledVal').textContent = filled;
+}
+
+function updateInfo() {
+  document.getElementById('errVal').textContent  = errors;
+  document.getElementById('filledVal').textContent = userGrid.reduce((s,r)=>s+r.filter(v=>v===1||v===3).length,0);
+  const rec = getRec(N);
+  document.getElementById('recVal').textContent = rec ? fmt(rec) : '—';
+}
+
+// ══════════════════════════════════════════════════════
+// INPUT MODE
+// ══════════════════════════════════════════════════════
+function setInputMode(m) {
+  inputMode = m;
+  document.getElementById('modeFill').classList.toggle('active',   m==='fill');
+  document.getElementById('modeFlag').classList.toggle('active',   m==='flag');
+  document.getElementById('modeFlag').classList.toggle('flag-mode',m==='flag');
+}
+
+// ══════════════════════════════════════════════════════
+// HIGHLIGHT ROW/COL ON HOVER
+// ══════════════════════════════════════════════════════
+function highlightLine(r,c) {
+  clearHighlight();
+  for(let i=0;i<N;i++) {
+    document.getElementById(`g-${r}-${i}`)?.classList.add('hl-row');
+    document.getElementById(`g-${i}-${c}`)?.classList.add('hl-col');
+  }
+}
+function clearHighlight() {
+  document.querySelectorAll('.hl-row,.hl-col').forEach(el=>{el.classList.remove('hl-row','hl-col');});
+}
+
+// ══════════════════════════════════════════════════════
+// STATUS
+// ══════════════════════════════════════════════════════
+function setStatus(msg,cls='') {
+  const el=document.getElementById('statusBar');
+  el.textContent=msg; el.className='status-bar '+(cls||'');
+}
+
+// ══════════════════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    elapsed++;
+    document.getElementById('timerVal').textContent=fmt(elapsed);
+  },1000);
+}
+function stopTimer(){ clearInterval(timerInt); }
+function fmt(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+// ══════════════════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════════════════
+const canvas=document.getElementById('particles'), pctx=canvas.getContext('2d');
+let parts=[];
+function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+resize(); window.addEventListener('resize',()=>{ resize(); buildTable(); renderAllCells(); });
+
+function spawnConfetti(){
+  const cols=['#39ff14','#00f5ff','#ffe600','#ff0090','#aa00ff','#ff6600'];
+  for(let i=0;i<130;i++) parts.push({
+    x:Math.random()*innerWidth,y:-10,
+    vx:(Math.random()-.5)*5,vy:2+Math.random()*6,
+    life:1,dec:.006+Math.random()*.007,
+    sz:3+Math.random()*5,col:cols[i%cols.length],
+    rot:Math.random()*Math.PI*2,rotV:(Math.random()-.5)*.18
+  });
+}
+function animP(){
+  pctx.clearRect(0,0,canvas.width,canvas.height);
+  parts=parts.filter(p=>p.life>0);
+  parts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=p.dec;p.rot+=p.rotV;
+    pctx.save();pctx.globalAlpha=p.life;pctx.translate(p.x,p.y);pctx.rotate(p.rot);
+    pctx.fillStyle=p.col;pctx.fillRect(-p.sz/2,-p.sz/4,p.sz,p.sz/2);
+    pctx.restore();
+  });
+  requestAnimationFrame(animP);
+}
+animP();
+
+// ══════════════════════════════════════════════════════
+// AUDIO
+// ══════════════════════════════════════════════════════
+let ac=null;
+function tone(f,t='sine',v=.1,d=.1){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;o.type=t;g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+newPuzzle();
+</script>
+</body>
+</html>

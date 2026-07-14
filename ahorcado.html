@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ahorcado • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --bg:      #03030e;
+  --text:    #e0e0ff;
+  --dim:     #44448a;
+  --panel:   rgba(255,255,255,0.04);
+  --pb:      rgba(255,255,255,0.08);
+  --cyan:    #00f5ff;
+  --pink:    #ff0090;
+  --yellow:  #ffe600;
+  --green:   #39ff14;
+  --orange:  #ff6600;
+  --purple:  #aa00ff;
+  --red:     #ff1744;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{
+  font-family:'Rajdhani',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden; user-select:none;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,255,0.02) 1px,transparent 1px);
+  background-size:55px 55px; animation:gd 30s linear infinite;
+}
+@keyframes gd{ to{ background-position:0 55px; } }
+body::after{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 700px 500px at 10% 20%,rgba(0,245,255,0.04) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 500px at 90% 80%,rgba(255,0,144,0.05) 0%,transparent 70%);
+}
+.scanlines{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+}
+#app{ position:relative; z-index:2; display:flex; flex-direction:column; min-height:100vh; }
+
+/* ── HEADER ── */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 5%; border-bottom:1px solid var(--pb);
+  background:rgba(3,3,14,0.93); backdrop-filter:blur(8px);
+  position:sticky; top:0; z-index:50;
+}
+.back-btn{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:3px;
+  color:var(--dim); text-decoration:none;
+  padding:8px 13px; border:1px solid var(--pb); border-radius:6px; transition:all 0.2s;
+}
+.back-btn:hover{ color:var(--cyan); border-color:rgba(0,245,255,0.3); }
+.h-center{ display:flex; flex-direction:column; align-items:center; }
+.h-title{
+  font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; letter-spacing:4px;
+  background:linear-gradient(90deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.h-sub{ font-size:0.58rem; letter-spacing:4px; color:var(--dim); text-transform:uppercase; }
+.h-right{ display:flex; flex-direction:column; align-items:flex-end; }
+.h-streak-val{
+  font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900;
+  color:var(--yellow); text-shadow:0 0 12px rgba(255,230,0,0.5);
+}
+.h-streak-lbl{ font-size:0.55rem; letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
+
+/* ── LEVEL & CATEGORY SELECTOR ── */
+.selector-wrap{ padding:14px 5% 8px; }
+.sel-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.sel-label{ font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; min-width:80px; }
+.sel-btn{
+  font-family:'Orbitron',monospace; font-size:0.62rem; font-weight:700; letter-spacing:1px;
+  padding:6px 13px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--pb); background:var(--panel); color:var(--dim); transition:all 0.2s;
+  display:flex; align-items:center; gap:6px;
+}
+.sel-btn:hover{ color:var(--text); border-color:rgba(255,230,0,0.3); }
+.sel-btn.active{
+  color:#000; border-color:transparent;
+  background:linear-gradient(135deg,var(--yellow),var(--orange));
+  box-shadow:0 0 14px rgba(255,230,0,0.4);
+}
+.sel-btn.cat-btn.active{
+  color:#000;
+}
+
+/* ── MAIN GAME AREA ── */
+.game-wrap{
+  flex:1; display:flex; gap:20px; padding:14px 4% 10px;
+  flex-wrap:wrap; justify-content:center;
+}
+
+/* ── LEFT: GALLOWS + LIVES ── */
+.left-panel{ display:flex; flex-direction:column; align-items:center; gap:12px; min-width:200px; }
+
+/* GALLOWS SVG */
+.gallows-wrap{
+  background:rgba(0,0,0,0.35); border:1px solid var(--pb);
+  border-radius:16px; padding:16px;
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.5);
+}
+#gallowsSvg{ display:block; }
+
+/* LIVES DOTS */
+.lives-row{ display:flex; gap:8px; }
+.life-dot{
+  width:20px; height:20px; border-radius:50%;
+  background:var(--green); box-shadow:0 0 10px rgba(57,255,20,0.6);
+  transition:all 0.4s;
+}
+.life-dot.lost{
+  background:#1a1a30; box-shadow:none;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* ── RIGHT: WORD + HINT + KEYBOARD ── */
+.right-panel{ flex:1; min-width:260px; max-width:560px; display:flex; flex-direction:column; gap:12px; }
+
+/* CATEGORY BADGE */
+.cat-badge{
+  display:flex; align-items:center; gap:10px;
+  background:var(--panel); border:1px solid var(--pb);
+  border-radius:10px; padding:10px 16px;
+}
+.cat-emoji{ font-size:1.6rem; }
+.cat-info{ display:flex; flex-direction:column; }
+.cat-name{
+  font-family:'Orbitron',monospace; font-size:0.65rem; font-weight:700; letter-spacing:3px;
+  text-transform:uppercase;
+}
+.cat-hint{ font-size:0.9rem; color:var(--dim); line-height:1.4; margin-top:2px; }
+
+/* VISUAL HINT */
+.visual-hint{
+  background:rgba(0,0,0,0.3); border:1px solid var(--pb);
+  border-radius:12px; padding:12px 16px; min-height:56px;
+  display:flex; align-items:center; gap:12px;
+}
+.hint-icon{ font-size:2rem; flex-shrink:0; }
+.hint-text{ font-size:0.92rem; color:var(--text); line-height:1.5; }
+.hint-text b{ color:var(--yellow); }
+.hint-btn{
+  margin-left:auto; font-family:'Orbitron',monospace; font-size:0.55rem;
+  letter-spacing:2px; text-transform:uppercase;
+  padding:6px 10px; border-radius:6px; cursor:pointer;
+  background:rgba(255,230,0,0.08); border:1px solid rgba(255,230,0,0.25);
+  color:var(--yellow); transition:all 0.2s; flex-shrink:0;
+}
+.hint-btn:hover{ background:rgba(255,230,0,0.15); }
+.hint-btn:disabled{ opacity:0.35; cursor:default; }
+
+/* WORD DISPLAY */
+.word-display{
+  display:flex; gap:6px; justify-content:center; flex-wrap:wrap; padding:8px 4px;
+}
+.letter-slot{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.letter-box{
+  width:38px; height:44px; border-radius:8px;
+  background:rgba(0,0,0,0.35); border:2px solid rgba(255,255,255,0.1);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900;
+  color:var(--cyan); text-shadow:0 0 10px rgba(0,245,255,0.5);
+  transition:all 0.3s;
+}
+.letter-box.revealed{
+  border-color:rgba(0,245,255,0.4);
+  background:rgba(0,245,255,0.06);
+  animation:letterPop 0.35s cubic-bezier(0.23,1,0.32,1);
+}
+.letter-box.wrong{
+  border-color:rgba(255,23,68,0.4);
+  background:rgba(255,23,68,0.06);
+  color:var(--red); text-shadow:0 0 10px rgba(255,23,68,0.5);
+}
+@keyframes letterPop{ 0%{transform:scale(0.7) translateY(-8px);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1} }
+.letter-line{
+  width:38px; height:2px; border-radius:2px;
+  background:rgba(255,255,255,0.15);
+}
+.letter-box.space-slot{
+  background:transparent; border:none;
+  width:16px;
+}
+
+/* STATUS MSG */
+.status-msg{
+  text-align:center;
+  font-family:'Orbitron',monospace; font-size:0.72rem;
+  letter-spacing:4px; text-transform:uppercase;
+  min-height:32px; padding:6px;
+  color:var(--dim); transition:all 0.3s;
+}
+.status-msg.correct{ color:var(--green); animation:sPulse 0.6s ease-in-out 3; }
+.status-msg.wrong-guess{ color:var(--red); }
+.status-msg.hint-used{ color:var(--yellow); }
+@keyframes sPulse{ 0%,100%{opacity:1}50%{opacity:0.3} }
+
+/* KEYBOARD */
+.keyboard{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+.kb-row{ display:flex; gap:4px; }
+.key{
+  font-family:'Orbitron',monospace; font-weight:700; font-size:0.68rem;
+  width:36px; height:42px; border-radius:7px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.07); color:var(--text);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.18s; -webkit-tap-highlight-color:transparent;
+}
+.key:hover:not(:disabled){ background:rgba(255,255,255,0.14); border-color:rgba(255,230,0,0.3); transform:translateY(-1px); }
+.key:active:not(:disabled){ transform:scale(0.9); }
+.key.hit {
+  background:rgba(57,255,20,0.15); border-color:rgba(57,255,20,0.5);
+  color:var(--green); box-shadow:0 0 8px rgba(57,255,20,0.3);
+}
+.key.miss{
+  background:rgba(10,10,30,0.9); border-color:rgba(255,255,255,0.04);
+  color:rgba(255,255,255,0.18); cursor:default;
+}
+.key:disabled{ cursor:default; }
+
+/* progress bar */
+.prog-wrap{ display:flex; align-items:center; gap:10px; }
+.prog-label{ font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; white-space:nowrap; }
+.prog-bg{ flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+.prog-fill{ height:100%; background:linear-gradient(90deg,var(--yellow),var(--orange)); border-radius:4px; box-shadow:0 0 6px rgba(255,230,0,0.4); transition:width 0.35s ease; }
+.prog-pct{ font-family:'Orbitron',monospace; font-size:0.6rem; color:var(--yellow); white-space:nowrap; }
+
+/* ctrl row */
+.ctrl-row{ display:flex; justify-content:center; gap:10px; padding:10px 5% 20px; flex-wrap:wrap; }
+.ctrl-btn{
+  font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:3px; text-transform:uppercase;
+  padding:10px 18px; border-radius:8px; cursor:pointer;
+  background:var(--panel); color:var(--dim); border:1px solid var(--pb);
+  transition:all 0.2s; display:flex; align-items:center; gap:8px;
+}
+.ctrl-btn:hover{ color:var(--text); border-color:rgba(255,230,0,0.35); }
+
+/* ── PARTICLE CANVAS ── */
+#particles{ position:fixed; inset:0; pointer-events:none; z-index:3; }
+
+/* ── RESULT OVERLAY ── */
+.r-overlay{
+  position:fixed; inset:0; z-index:100;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(3,3,14,0.93); backdrop-filter:blur(14px); padding:20px;
+}
+.r-overlay.show{ display:flex; animation:fadeIn 0.4s ease; }
+@keyframes fadeIn{ from{opacity:0}to{opacity:1} }
+.r-card{
+  border-radius:24px; padding:44px 52px; max-width:460px; width:100%; text-align:center;
+  animation:cardIn 0.5s cubic-bezier(0.23,1,0.32,1) backwards; animation-delay:0.1s;
+  max-height:90vh; overflow-y:auto;
+}
+.r-card.win{ background:linear-gradient(135deg,rgba(57,255,20,0.08),rgba(255,230,0,0.06)); border:1px solid rgba(57,255,20,0.25); }
+.r-card.lose{ background:linear-gradient(135deg,rgba(255,23,68,0.08),rgba(255,102,0,0.06)); border:1px solid rgba(255,23,68,0.25); }
+@keyframes cardIn{ from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1} }
+.r-emoji{ font-size:3.5rem; margin-bottom:12px; display:block; animation:bounce 0.9s ease infinite alternate; }
+@keyframes bounce{ from{transform:translateY(0)}to{transform:translateY(-10px)} }
+.r-title{
+  font-family:'Orbitron',monospace; font-size:1.6rem; font-weight:900; letter-spacing:3px; margin-bottom:6px;
+}
+.r-card.win  .r-title{ background:linear-gradient(90deg,var(--green),var(--yellow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.r-card.lose .r-title{ background:linear-gradient(90deg,var(--red),var(--orange));   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.r-sub{ color:var(--dim); letter-spacing:2px; font-size:0.88rem; margin-bottom:18px; }
+.r-word{ font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; letter-spacing:5px; margin-bottom:22px; padding:12px 20px; border-radius:12px; }
+.r-card.win  .r-word{ color:var(--green);  background:rgba(57,255,20,0.08);  border:1px solid rgba(57,255,20,0.2);  text-shadow:0 0 18px rgba(57,255,20,0.5); }
+.r-card.lose .r-word{ color:var(--yellow); background:rgba(255,230,0,0.08);  border:1px solid rgba(255,230,0,0.2);  text-shadow:0 0 14px rgba(255,230,0,0.4); }
+.r-stats{ display:flex; justify-content:center; gap:24px; margin-bottom:22px; }
+.r-stat{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+.r-stat-val{ font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:900; color:var(--cyan); text-shadow:0 0 14px rgba(0,245,255,0.4); }
+.r-stat-lbl{ font-size:0.58rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+.rec-banner{
+  background:rgba(255,230,0,0.08); border:1px solid rgba(255,230,0,0.25);
+  border-radius:8px; padding:8px 18px; margin-bottom:20px;
+  font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:3px;
+  color:var(--yellow); text-transform:uppercase; animation:recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse{ 0%,100%{opacity:1}50%{opacity:0.5} }
+.r-btns{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.btn-primary{
+  font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:3px;
+  padding:13px 26px; border-radius:10px; cursor:pointer;
+  background:linear-gradient(135deg,var(--yellow),var(--orange));
+  color:#000; border:none; box-shadow:0 0 20px rgba(255,230,0,0.35); transition:all 0.2s;
+}
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 0 30px rgba(255,230,0,0.55); }
+.btn-secondary{
+  font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:3px;
+  padding:13px 26px; border-radius:10px; cursor:pointer;
+  background:transparent; color:var(--dim); border:1px solid var(--pb); transition:all 0.2s;
+}
+.btn-secondary:hover{ color:var(--text); border-color:rgba(255,230,0,0.3); }
+
+/* ── HELP MODAL ── */
+.help-overlay{
+  position:fixed; inset:0; z-index:200;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(3,3,14,0.93); backdrop-filter:blur(14px); padding:20px;
+}
+.help-overlay.show{ display:flex; animation:fadeIn 0.3s ease; }
+.h-card{
+  background:linear-gradient(135deg,rgba(255,230,0,0.06),rgba(255,102,0,0.05));
+  border:1px solid rgba(255,230,0,0.18); border-radius:24px;
+  padding:38px 42px; max-width:500px; width:100%; position:relative;
+  max-height:90vh; overflow-y:auto;
+  scrollbar-width:thin; scrollbar-color:rgba(255,230,0,0.2) transparent;
+  animation:cardIn 0.4s cubic-bezier(0.23,1,0.32,1) backwards;
+}
+.h-close{
+  position:absolute; top:16px; right:16px; width:32px; height:32px;
+  border-radius:50%; background:rgba(255,255,255,0.04); border:1px solid var(--pb);
+  cursor:pointer; color:var(--dim); display:grid; place-items:center; font-size:0.85rem; transition:all 0.2s;
+}
+.h-close:hover{ color:var(--text); border-color:rgba(255,230,0,0.4); }
+.h-icon{ font-size:2.6rem; text-align:center; margin-bottom:12px; display:block; }
+.h-title{
+  font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; letter-spacing:4px; text-align:center;
+  background:linear-gradient(90deg,var(--yellow),var(--orange));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:4px;
+}
+.h-sub2{ text-align:center; color:var(--dim); font-size:0.8rem; letter-spacing:2px; margin-bottom:22px; }
+.h-sec{ margin-bottom:18px; }
+.h-sec-title{
+  font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:4px;
+  text-transform:uppercase; color:var(--yellow); margin-bottom:9px;
+  display:flex; align-items:center; gap:8px;
+}
+.h-sec-title::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(255,230,0,0.3),transparent); }
+.h-steps{ display:flex; flex-direction:column; gap:8px; }
+.h-step{
+  display:flex; align-items:flex-start; gap:12px;
+  background:rgba(255,255,255,0.03); border:1px solid var(--pb); border-radius:10px; padding:10px 14px;
+}
+.h-num{ font-family:'Orbitron',monospace; font-size:0.82rem; font-weight:900; color:var(--yellow); min-width:22px; text-align:center; }
+.h-txt{ font-size:0.88rem; color:var(--text); line-height:1.5; }
+.h-txt b{ color:var(--yellow); }
+.h-txt em{ color:var(--cyan); font-style:normal; font-weight:600; }
+.cat-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.cat-chip{
+  padding:6px 12px; border-radius:8px; font-size:0.82rem;
+  background:var(--panel); border:1px solid var(--pb); color:var(--text);
+}
+.h-tip{ background:rgba(255,230,0,0.05); border:1px solid rgba(255,230,0,0.2); border-radius:10px; padding:12px 14px; font-size:0.86rem; color:var(--text); line-height:1.5; }
+.h-tip b{ color:var(--yellow); }
+.h-foot{ margin-top:22px; }
+
+@media(max-width:600px){
+  .game-wrap{ gap:12px; }
+  .gallows-wrap{ padding:10px; }
+  .letter-box{ width:30px; height:38px; font-size:0.9rem; }
+  .letter-line{ width:30px; }
+  .key{ width:30px; height:38px; font-size:0.6rem; }
+  .h-card,.r-card{ padding:26px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <header>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+    <div class="h-center">
+      <div class="h-title">AHORCADO</div>
+      <div class="h-sub">Temático · Con pistas · Por niveles</div>
+    </div>
+    <div class="h-right">
+      <div class="h-streak-val" id="streakVal">0 🔥</div>
+      <div class="h-streak-lbl">Racha</div>
+    </div>
+  </header>
+
+  <!-- SELECTORS -->
+  <div class="selector-wrap">
+    <div class="sel-row">
+      <span class="sel-label">Nivel</span>
+      <button class="sel-btn active" data-level="kids" onclick="setLevel('kids',this)">🧒 Niños</button>
+      <button class="sel-btn" data-level="adult" onclick="setLevel('adult',this)">🧠 Avanzado</button>
+    </div>
+    <div class="sel-row" id="catRow"></div>
+  </div>
+
+  <!-- GAME -->
+  <div class="game-wrap">
+
+    <!-- LEFT -->
+    <div class="left-panel">
+      <div class="gallows-wrap">
+        <svg id="gallowsSvg" width="160" height="200" viewBox="0 0 160 200">
+          <!-- Gallows structure -->
+          <line x1="20" y1="190" x2="140" y2="190" stroke="rgba(0,245,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="50"  y1="190" x2="50"  y2="20"  stroke="rgba(0,245,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="50"  y1="20"  x2="105" y2="20"  stroke="rgba(0,245,255,0.4)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="105" y1="20"  x2="105" y2="42"  stroke="rgba(0,245,255,0.4)" stroke-width="2" stroke-linecap="round"/>
+          <!-- Body parts — shown progressively -->
+          <!-- Head -->
+          <circle id="p-head" cx="105" cy="57" r="15" fill="none" stroke="var(--pink)" stroke-width="2.5" opacity="0" style="transition:opacity 0.4s"/>
+          <!-- Eyes (only on lose) -->
+          <g id="p-eyes" opacity="0" style="transition:opacity 0.4s">
+            <line x1="99" y1="53" x2="102" y2="56" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="102" y1="53" x2="99" y2="56" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="108" y1="53" x2="111" y2="56" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="111" y1="53" x2="108" y2="56" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"/>
+          </g>
+          <!-- Body -->
+          <line id="p-body" x1="105" y1="72" x2="105" y2="120" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="round" opacity="0" style="transition:opacity 0.4s"/>
+          <!-- Left arm -->
+          <line id="p-larm" x1="105" y1="85"  x2="82"  y2="105" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="round" opacity="0" style="transition:opacity 0.4s"/>
+          <!-- Right arm -->
+          <line id="p-rarm" x1="105" y1="85"  x2="128" y2="105" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="round" opacity="0" style="transition:opacity 0.4s"/>
+          <!-- Left leg -->
+          <line id="p-lleg" x1="105" y1="120" x2="82"  y2="150" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="round" opacity="0" style="transition:opacity 0.4s"/>
+          <!-- Right leg -->
+          <line id="p-rleg" x1="105" y1="120" x2="128" y2="150" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="round" opacity="0" style="transition:opacity 0.4s"/>
+
+          <!-- Glow filter -->
+          <defs>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+        </svg>
+      </div>
+      <!-- Lives -->
+      <div class="lives-row" id="livesRow"></div>
+      <!-- Progress -->
+      <div class="prog-wrap" style="width:160px">
+        <div class="prog-bg"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <span class="prog-pct" id="progPct">0%</span>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+
+      <!-- Category badge -->
+      <div class="cat-badge">
+        <div class="cat-emoji" id="catEmoji">🐶</div>
+        <div class="cat-info">
+          <div class="cat-name" id="catName">Animales</div>
+          <div class="cat-hint" id="catHint">Adivina el animal oculto</div>
+        </div>
+      </div>
+
+      <!-- Visual hint -->
+      <div class="visual-hint" id="visualHint">
+        <div class="hint-icon" id="hintIcon">💡</div>
+        <div class="hint-text" id="hintText">Presiona <b>Pista</b> cuando la necesites</div>
+        <button class="hint-btn" id="hintBtn" onclick="useHint()">💡 Pista</button>
+      </div>
+
+      <!-- Status -->
+      <div class="status-msg" id="statusMsg">Adivina la palabra letra a letra</div>
+
+      <!-- Word display -->
+      <div class="word-display" id="wordDisplay"></div>
+
+      <!-- Keyboard -->
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="ctrl-row">
+    <button class="ctrl-btn" onclick="newGame()"><i class="fa-solid fa-shuffle"></i> Nueva palabra</button>
+    <button class="ctrl-btn" onclick="document.getElementById('helpOverlay').classList.add('show')"><i class="fa-solid fa-circle-question"></i> ¿Cómo jugar?</button>
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="r-overlay" id="resultOverlay">
+  <div class="r-card" id="resultCard">
+    <span class="r-emoji" id="rEmoji">🎉</span>
+    <div class="r-title" id="rTitle">¡GANASTE!</div>
+    <div class="r-sub" id="rSub">Adivinaste la palabra</div>
+    <div class="r-word" id="rWord">PERRO</div>
+    <div class="r-stats">
+      <div class="r-stat"><div class="r-stat-val" id="rErrores">0</div><div class="r-stat-lbl">Errores</div></div>
+      <div class="r-stat"><div class="r-stat-val" id="rGanadas" style="color:var(--green)">0</div><div class="r-stat-lbl">Ganadas</div></div>
+      <div class="r-stat"><div class="r-stat-val" id="rRacha" style="color:var(--yellow)">0</div><div class="r-stat-lbl">Racha</div></div>
+    </div>
+    <div class="rec-banner" id="rRecBanner" style="display:none">⚡ ¡MEJOR RACHA! ⚡</div>
+    <div class="r-btns">
+      <button class="btn-primary" onclick="closeResult();newGame()">▶ Siguiente</button>
+      <button class="btn-secondary" onclick="closeResult()">Ver tablero</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="h-card">
+    <button class="h-close" onclick="document.getElementById('helpOverlay').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+    <span class="h-icon">🎯</span>
+    <div class="h-title">AHORCADO</div>
+    <div class="h-sub2">Temático · Con pistas · Dos niveles</div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Objetivo</div>
+      <div class="h-step" style="background:rgba(255,230,0,0.05);border-color:rgba(255,230,0,0.2)">
+        <div class="h-num">🎯</div>
+        <div class="h-txt">Adivinar la <b>palabra oculta</b> letra a letra antes de que se complete el dibujo del ahorcado. Tienes <b>6 intentos fallidos</b>.</div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">¿Cómo se juega?</div>
+      <div class="h-steps">
+        <div class="h-step"><div class="h-num">1</div><div class="h-txt">Elige el <b>nivel</b> (Niños o Avanzado) y la <b>categoría</b> temática.</div></div>
+        <div class="h-step"><div class="h-num">2</div><div class="h-txt">Toca o escribe letras para adivinar la palabra. Cada <em>acierto</em> revela la letra en el tablero.</div></div>
+        <div class="h-step"><div class="h-num">3</div><div class="h-txt">Cada <b>error</b> dibuja una parte del ahorcado. Al sexto error, pierdes.</div></div>
+        <div class="h-step"><div class="h-num">4</div><div class="h-txt">Usa el botón <b>💡 Pista</b> para recibir una ayuda visual — pero solo tienes <b>2 pistas</b> por partida.</div></div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Categorías disponibles</div>
+      <div class="cat-chips">
+        <div class="cat-chip">🐶 Animales</div>
+        <div class="cat-chip">🍎 Frutas</div>
+        <div class="cat-chip">🌍 Países</div>
+        <div class="cat-chip">⚽ Deportes</div>
+        <div class="cat-chip">🔬 Ciencia</div>
+        <div class="cat-chip">🎬 Películas</div>
+        <div class="cat-chip">🍕 Comidas</div>
+        <div class="cat-chip">🚀 Espacio</div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Niveles</div>
+      <div class="h-steps">
+        <div class="h-step">
+          <div class="h-num">🧒</div>
+          <div class="h-txt"><b>Niños (8-10 años)</b> — palabras cortas y conocidas, pistas más detalladas, categorías familiares.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">🧠</div>
+          <div class="h-txt"><b>Avanzado</b> — palabras más largas y complejas, pistas más sutiles, vocabulario exigente.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Consejo</div>
+      <div class="h-tip">💡 <b>Empieza con las vocales</b> — A, E, I, O, U. Luego prueba las consonantes más comunes: S, R, N, L, T. Guarda las pistas para cuando estés realmente atascado.</div>
+    </div>
+
+    <div class="h-foot">
+      <button class="btn-primary" style="width:100%" onclick="document.getElementById('helpOverlay').classList.remove('show')">¡Entendido, a jugar!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// BANCO DE PALABRAS
+// ═══════════════════════════════════════════════════════
+const DB = {
+  kids: {
+    animales: {
+      emoji:'🐶', name:'Animales', desc:'Adivina el nombre del animal',
+      words:[
+        { w:'PERRO',    hints:['Es la mascota más popular del mundo','Ladra y mueve la cola','Mejor amigo del humano'] },
+        { w:'GATO',     hints:['Maulla y ronronea','Le encanta dormir y trepar','Tiene bigotes largos'] },
+        { w:'LEON',     hints:['El rey de la selva','Tiene una gran melena','Ruge muy fuerte'] },
+        { w:'TIGRE',    hints:['Felino con rayas negras y naranja','Nada muy bien','El más grande de los felinos'] },
+        { w:'ELEFANTE', hints:['El animal terrestre más grande','Tiene una trompa larga','Tiene orejas enormes'] },
+        { w:'JIRAFA',   hints:['El animal más alto del mundo','Come hojas de los árboles altos','Tiene manchas cafés'] },
+        { w:'MONO',     hints:['Trepa árboles con facilidad','Come plátanos','Parece mucho a los humanos'] },
+        { w:'PATO',     hints:['Nada en lagunas y ríos','Hace cuac cuac','Tiene pico plano y anaranjado'] },
+        { w:'CABALLO',  hints:['Animal de montar','Corre muy rápido','Los jinetes lo usan en deportes'] },
+        { w:'CONEJO',   hints:['Tiene orejas muy largas','Salta mucho','Le encanta comer zanahorias'] },
+        { w:'OSO',      hints:['Hiberna en invierno','Le encanta la miel','Es grande y peludo'] },
+        { w:'DELFIN',   hints:['Vive en el mar pero respira aire','Muy inteligente y juguetón','Hace clic y silbidos'] },
+        { w:'RANA',     hints:['Salta mucho','Vive cerca del agua','Croa y croa'] },
+        { w:'AGUILA',   hints:['Ave rapaz que vuela muy alto','Ve a grandes distancias','Tiene garras afiladas'] },
+        { w:'PINGÜINO', hints:['Ave que no puede volar','Vive en el frío del sur','Camina graciosamente'] },
+      ]
+    },
+    frutas: {
+      emoji:'🍎', name:'Frutas', desc:'Adivina la fruta oculta',
+      words:[
+        { w:'MANZANA',  hints:['Roja, verde o amarilla','Una al día aleja al médico','Tiene semillas en el centro'] },
+        { w:'PLATANO',  hints:['Amarillo y curvo','Los monos la adoran','Se pela antes de comer'] },
+        { w:'NARANJA',  hints:['Del color del sol','Tiene mucha vitamina C','Se exprime para hacer jugo'] },
+        { w:'SANDIA',   hints:['Verde por fuera, roja por dentro','Tiene semillas negras','Perfecta para el verano'] },
+        { w:'FRESA',    hints:['Roja y pequeña','Tiene puntitos amarillos en la piel','Sabe bien con crema'] },
+        { w:'UVA',      hints:['Viene en racimos','Se usa para hacer vino','Roja, verde o morada'] },
+        { w:'PERA',     hints:['Tiene forma de gota','Verde o amarilla','Dulce y jugosa'] },
+        { w:'MANGO',    hints:['Tropical y muy dulce','Amarillo o naranja por dentro','Hueso grande en el centro'] },
+        { w:'PIÑA',     hints:['Piel con escamas amarillas','Muy dulce y ácida','También se llama ananá'] },
+        { w:'MELON',    hints:['Grande y redondo','Cáscara verde o amarilla','Muy dulce en verano'] },
+        { w:'LIMON',    hints:['Muy ácido','Amarillo pequeño','Sirve para agua de limón'] },
+        { w:'CEREZA',   hints:['Roja pequeña con rabito','Dulce y jugosa','Se pone encima de los helados'] },
+      ]
+    },
+    deportes: {
+      emoji:'⚽', name:'Deportes', desc:'Adivina el deporte',
+      words:[
+        { w:'FUTBOL',    hints:['Deporte más popular del mundo','Se juega con los pies','El portero cuida el arco'] },
+        { w:'TENIS',     hints:['Se juega con raqueta','Se golpea una pelota pequeña','Federer y Nadal lo juegan'] },
+        { w:'NATACION',  hints:['Deporte acuático','Se hacen diferentes estilos','Se practica en una piscina'] },
+        { w:'BASQUET',   hints:['Se encesta en un aro alto','Se usa una pelota naranja','Se juega en una cancha'] },
+        { w:'CICLISMO',  hints:['Se usa una bicicleta','Se puede hacer en montaña o pista','Las piernas son el motor'] },
+        { w:'KARATE',    hints:['Arte marcial japonés','Se usan golpes con manos y pies','Hay cinturones de colores'] },
+        { w:'VOLIBOL',   hints:['Se golpea la pelota con los brazos','Red en el medio','Seis jugadores por equipo'] },
+        { w:'GIMNASIA',  hints:['Requiere mucha flexibilidad','Se hacen piruetas y saltos','Se practican en colchonetas'] },
+        { w:'ATLETISMO', hints:['Correr es la base','Hay salto de longitud y altura','Se compite en estadios'] },
+        { w:'BEISBOL',   hints:['Se golpea una pelota con un bate','Hay bases y jonrones','Popular en EE.UU. y Cuba'] },
+      ]
+    },
+    comidas: {
+      emoji:'🍕', name:'Comidas', desc:'Adivina el alimento',
+      words:[
+        { w:'PIZZA',     hints:['Redonda con queso derretido','Tiene masa crujiente','Se puede pedir a domicilio'] },
+        { w:'PASTA',     hints:['Italiana, con diferentes formas','Los espaguetis son un tipo','Se cocina en agua hirviendo'] },
+        { w:'ARROZ',     hints:['Cereal blanco y pequeño','Base de muchas culturas','Acompaña frijoles y carnes'] },
+        { w:'TACOS',     hints:['Comida mexicana','Tortilla doblada con relleno','Se comen con salsa'] },
+        { w:'SOPA',      hints:['Líquido caliente y nutritivo','Se come con cuchara','Buena para el frío y los resfriados'] },
+        { w:'HELADO',    hints:['Frío y dulce','De muchos sabores','Se lame en un cono o cuchara'] },
+        { w:'GALLETA',   hints:['Dulce y crujiente','En forma de círculo generalmente','Con chispas de chocolate es mejor'] },
+        { w:'HUEVO',     hints:['Lo pone la gallina','Puede ser frito, hervido o revuelto','Tiene yema amarilla'] },
+        { w:'QUESO',     hints:['Se hace de leche','Puede ser duro o suave','Va muy bien en las pizzas'] },
+        { w:'CHOCOLATE', hints:['Dulce y oscuro','Se hace del cacao','Derretido es delicioso'] },
+      ]
+    },
+  },
+  adult: {
+    ciencia: {
+      emoji:'🔬', name:'Ciencia', desc:'Término científico o concepto',
+      words:[
+        { w:'FOTOSINTESIS', hints:['Proceso que usan las plantas para alimentarse','Necesita luz solar y CO₂','Produce oxígeno como subproducto'] },
+        { w:'MITOCONDRIA',  hints:['Orgánulo celular','Se le llama la central energética de la célula','Produce ATP'] },
+        { w:'EVOLUCION',    hints:['Teoría de Darwin','Explica la diversidad de las especies','Ocurre mediante selección natural'] },
+        { w:'GRAVITACION',  hints:['Fuerza que Newton describió al ver caer una manzana','Mantiene los planetas en órbita','Depende de la masa y la distancia'] },
+        { w:'CROMOSOMA',    hints:['Estructura en el núcleo celular','Contiene el ADN','Los humanos tenemos 46'] },
+        { w:'TERMODINAMICA',hints:['Rama de la física','Estudia el calor y la energía','Tiene cuatro leyes fundamentales'] },
+        { w:'QUASAR',       hints:['Objeto astronómico extremadamente luminoso','Núcleo activo de una galaxia lejana','Emite enormes cantidades de energía'] },
+        { w:'NEUROTRANSMISOR',hints:['Mensajero químico del sistema nervioso','La dopamina es uno de ellos','Viaja entre sinapsis neuronales'] },
+        { w:'ECOSISTEMA',   hints:['Conjunto de organismos y su ambiente','Puede ser terrestre o acuático','Incluye relaciones entre especies'] },
+        { w:'PROTEINA',     hints:['Macromolécula formada por aminoácidos','Esencial para la vida','La hemoglobina es una de ellas'] },
+      ]
+    },
+    paises: {
+      emoji:'🌍', name:'Países', desc:'Adivina el país del mundo',
+      words:[
+        { w:'MOZAMBIQUE',   hints:['País del sureste africano','Capital: Maputo','Tiene costa en el océano Índico'] },
+        { w:'KAZAJISTAN',   hints:['El país sin litoral más grande del mundo','Antigua república soviética','Capital: Astana'] },
+        { w:'AZERBAIYAN',   hints:['En el Cáucaso','Capital: Bakú','Limita con Rusia, Georgia e Irán'] },
+        { w:'MADAGASCAR',   hints:['Gran isla frente a África','Famoso por sus lémures únicos','Capital: Antananarivo'] },
+        { w:'UZBEKISTAN',   hints:['En Asia Central','Antigua ruta de la seda','Capital: Taskent'] },
+        { w:'ZIMBABUE',     hints:['País africano sin litoral','Famoso por las cataratas Victoria','Capital: Harare'] },
+        { w:'TAYIKISTAN',   hints:['El país más montañoso de Asia Central','Frontera con Afganistán y China','Capital: Dusambé'] },
+        { w:'FILIPINAS',    hints:['Archipiélago de más de 7000 islas','En el sudeste asiático','Capital: Manila'] },
+        { w:'VENEZUELA',    hints:['Tiene las cataratas más altas del mundo','En el norte de Sudamérica','Capital: Caracas'] },
+        { w:'INDONESIA',    hints:['El mayor archipiélago del mundo','Tiene más de 17000 islas','Capital: Yakarta'] },
+      ]
+    },
+    peliculas: {
+      emoji:'🎬', name:'Películas', desc:'Adivina el título de la película',
+      words:[
+        { w:'INTERESTELAR',  hints:['Película de Christopher Nolan','Astronautas viajan a través de un agujero de gusano','Explora la relatividad del tiempo'] },
+        { w:'INCEPTION',     hints:['Película de Nolan sobre sueños dentro de sueños','DiCaprio entra a la mente de personas','La perinola sigue girando al final'] },
+        { w:'PARASITE',      hints:['Ganadora del Oscar 2020 a mejor película','Coreana, del director Bong Joon-ho','Trata sobre desigualdad social'] },
+        { w:'GLADIADOR',     hints:['Russell Crowe lucha en la arena','Roma antigua, siglo II d.C.','Son entretenimiento lo que pides'] },
+        { w:'MATRIX',        hints:['¿Píldora roja o azul?','Keanu Reeves como Neo','La realidad es una simulación'] },
+        { w:'AVATAR',        hints:['Película más taquillera de la historia','Mundo llamado Pandora','Los Na\'vi son seres azules'] },
+        { w:'TITANIC',       hints:['Barco que choca con un iceberg','Historia de amor de Jack y Rose','DiCaprio y Winslet protagonistas'] },
+        { w:'JOKER',         hints:['Origen del villano de Batman','Joaquin Phoenix ganó el Oscar','Ciudad de Gotham'] },
+        { w:'OPPENHEIMER',   hints:['El padre de la bomba atómica','Cilian Murphy en el papel principal','Dirigida por Nolan en 2023'] },
+        { w:'DUNE',          hints:['Basada en la novela de Frank Herbert','El especio más valioso del universo','Planeta desértico Arrakis'] },
+      ]
+    },
+    espacio: {
+      emoji:'🚀', name:'Espacio', desc:'Concepto o cuerpo del espacio',
+      words:[
+        { w:'AGUJERO NEGRO', hints:['Densidad infinita','Ni la luz puede escapar de él','Se forman cuando una estrella masiva colapsa'] },
+        { w:'SUPERNOVA',    hints:['Explosión estelar de proporciones cósmicas','Puede brillar más que una galaxia entera','Dispersa elementos pesados al universo'] },
+        { w:'NEBULOSA',     hints:['Nube interestelar de gas y polvo','Cuna de nuevas estrellas','El Hubble las fotografía maravillosamente'] },
+        { w:'PLUTON',       hints:['Ex noveno planeta del sistema solar','Ahora es un planeta enano','Tiene una luna llamada Caronte'] },
+        { w:'ASTEROIDE',    hints:['Roca espacial orbitando el Sol','Muchos están en el cinturón entre Marte y Júpiter','Uno causó la extinción de los dinosaurios'] },
+        { w:'GALAXIA',      hints:['Sistema de millones de estrellas','La nuestra se llama Vía Láctea','Pueden ser espirales, elípticas o irregulares'] },
+        { w:'COMETA',       hints:['Tiene una cola de polvo y gas','Viaja en órbita elíptica alrededor del Sol','El Halley pasa cada 75 años'] },
+        { w:'SOLSTICIO',    hints:['Ocurre dos veces al año','El día más largo o más corto del año','Marca el inicio del verano o el invierno'] },
+        { w:'HORIZONTE',    hints:['En física, el límite desde el que no se puede retornar','Concepto clave en agujeros negros','También es donde el cielo toca la tierra'] },
+        { w:'MAGNETAR',     hints:['Tipo de estrella de neutrones','Tiene el campo magnético más poderoso del universo','Su superficie puede destruir materia a distancia'] },
+      ]
+    },
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const MAX_ERRORS = 6;
+const BODY_PARTS = ['p-head','p-body','p-larm','p-rarm','p-lleg','p-rleg'];
+
+let currentLevel    = 'kids';
+let currentCatKey   = 'animales';
+let secret          = '';
+let displayWord     = [];
+let guessed         = new Set();
+let errors          = 0;
+let gameOver        = false;
+let hintsLeft       = 2;
+let hintIndex       = 0;
+let currentHints    = [];
+let currentWord     = null;
+
+let stats = JSON.parse(localStorage.getItem('hangman_stats') || '{"played":0,"won":0,"streak":0,"maxStreak":0}');
+
+// ═══════════════════════════════════════════════════════
+// SELECTORS
+// ═══════════════════════════════════════════════════════
+function setLevel(level, btn) {
+  currentLevel = level;
+  document.querySelectorAll('[data-level]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Reset category to first of this level
+  const cats = Object.keys(DB[level]);
+  currentCatKey = cats[0];
+  buildCatRow();
+  newGame();
+}
+
+function setCategory(key, btn) {
+  currentCatKey = key;
+  document.querySelectorAll('.cat-sel-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  newGame();
+}
+
+function buildCatRow() {
+  const row = document.getElementById('catRow');
+  row.innerHTML = '<span class="sel-label">Categoría</span>';
+  const cats = DB[currentLevel];
+  Object.entries(cats).forEach(([key, cat], i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sel-btn cat-sel-btn' + (key === currentCatKey ? ' active' : '');
+    btn.innerHTML = `${cat.emoji} ${cat.name}`;
+    btn.onclick = () => setCategory(key, btn);
+    row.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// NEW GAME
+// ═══════════════════════════════════════════════════════
+function newGame() {
+  const cat  = DB[currentLevel][currentCatKey];
+  currentWord = cat.words[Math.floor(Math.random() * cat.words.length)];
+  secret      = currentWord.w.toUpperCase();
+  currentHints = currentWord.hints;
+  hintIndex    = 0;
+
+  displayWord  = secret.split('').map(ch => ch === ' ' ? ' ' : '');
+  guessed      = new Set();
+  errors       = 0;
+  gameOver     = false;
+  hintsLeft    = 2;
+
+  // Update category info
+  document.getElementById('catEmoji').textContent = cat.emoji;
+  document.getElementById('catName').textContent  = cat.name;
+  document.getElementById('catHint').textContent  = cat.desc;
+
+  // Reset hint area
+  document.getElementById('hintIcon').textContent = '💡';
+  document.getElementById('hintText').innerHTML   = 'Presiona <b>Pista</b> cuando la necesites';
+  const hintBtn = document.getElementById('hintBtn');
+  hintBtn.disabled = false;
+  hintBtn.textContent = `💡 Pista (${hintsLeft})`;
+
+  resetGallows();
+  buildLives();
+  buildWordDisplay();
+  buildKeyboard();
+  updateProgress();
+  setStatus('Adivina la palabra letra a letra', '');
+  document.getElementById('resultOverlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════
+// GALLOWS
+// ═══════════════════════════════════════════════════════
+function resetGallows() {
+  BODY_PARTS.forEach(id => document.getElementById(id).setAttribute('opacity','0'));
+  document.getElementById('p-eyes').setAttribute('opacity','0');
+}
+
+function showBodyPart(index) {
+  if (index < BODY_PARTS.length) {
+    document.getElementById(BODY_PARTS[index]).setAttribute('opacity','1');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// LIVES
+// ═══════════════════════════════════════════════════════
+function buildLives() {
+  const row = document.getElementById('livesRow');
+  row.innerHTML = '';
+  for (let i = 0; i < MAX_ERRORS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'life-dot'; dot.id = `life-${i}`;
+    row.appendChild(dot);
+  }
+}
+
+function loseLife(index) {
+  const dot = document.getElementById(`life-${index}`);
+  if (dot) dot.classList.add('lost');
+}
+
+// ═══════════════════════════════════════════════════════
+// WORD DISPLAY
+// ═══════════════════════════════════════════════════════
+function buildWordDisplay() {
+  const wrap = document.getElementById('wordDisplay');
+  wrap.innerHTML = '';
+  secret.split('').forEach((ch, i) => {
+    if (ch === ' ') {
+      const gap = document.createElement('div');
+      gap.style.width = '12px'; wrap.appendChild(gap); return;
+    }
+    const slot = document.createElement('div');
+    slot.className = 'letter-slot';
+    const box = document.createElement('div');
+    box.className = 'letter-box'; box.id = `lbox-${i}`;
+    if (displayWord[i]) { box.textContent = ch; box.classList.add('revealed'); }
+    const line = document.createElement('div');
+    line.className = 'letter-line';
+    slot.appendChild(box); slot.appendChild(line);
+    wrap.appendChild(slot);
+  });
+}
+
+function revealLetter(ch) {
+  secret.split('').forEach((c, i) => {
+    if (c === ch) {
+      displayWord[i] = ch;
+      const box = document.getElementById(`lbox-${i}`);
+      if (box) { box.textContent = ch; box.classList.add('revealed'); }
+    }
+  });
+}
+
+function revealAll(win) {
+  secret.split('').forEach((c, i) => {
+    if (c === ' ') return;
+    const box = document.getElementById(`lbox-${i}`);
+    if (!box) return;
+    if (!displayWord[i]) {
+      box.textContent = c;
+      box.classList.add(win ? 'revealed' : 'wrong');
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════
+const KB = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L','Ñ'],
+  ['Z','X','C','V','B','N','M'],
+];
+
+function buildKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  KB.forEach(rowKeys => {
+    const row = document.createElement('div');
+    row.className = 'kb-row';
+    rowKeys.forEach(k => {
+      const btn = document.createElement('button');
+      btn.className = 'key'; btn.textContent = k; btn.dataset.key = k;
+      btn.addEventListener('click', () => handleKey(k));
+      row.appendChild(btn);
+    });
+    kb.appendChild(row);
+  });
+}
+
+function disableKey(k, type) {
+  const btn = document.querySelector(`.key[data-key="${k}"]`);
+  if (btn) { btn.classList.add(type); btn.disabled = true; }
+}
+
+// ═══════════════════════════════════════════════════════
+// HANDLE GUESS
+// ═══════════════════════════════════════════════════════
+function handleKey(letter) {
+  if (gameOver || guessed.has(letter)) return;
+  guessed.add(letter);
+
+  const secretNorm = secret.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const hit = secretNorm.includes(letter) || secret.includes(letter);
+
+  if (hit) {
+    disableKey(letter, 'hit');
+    // Reveal matching positions (handling accented chars)
+    secret.split('').forEach((c, i) => {
+      const cn = c.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if (cn === letter || c === letter) revealLetterAt(i);
+    });
+    playTone(660, 'sine');
+    spawnParticleAt('keyboard', letter, '#39ff14');
+    setStatus('¡Letra correcta! ✓', 'correct');
+    checkWin();
+  } else {
+    disableKey(letter, 'miss');
+    errors++;
+    loseLife(errors - 1);
+    showBodyPart(errors - 1);
+    playTone(200, 'sawtooth');
+    if (errors === MAX_ERRORS) { endGame(false); return; }
+    const left = MAX_ERRORS - errors;
+    setStatus(`Incorrecto — ${left} intento${left!==1?'s':''} restante${left!==1?'s':''}`, 'wrong-guess');
+  }
+  updateProgress();
+}
+
+function revealLetterAt(i) {
+  displayWord[i] = secret[i];
+  const box = document.getElementById(`lbox-${i}`);
+  if (box) { box.textContent = secret[i]; box.classList.add('revealed'); }
+}
+
+function checkWin() {
+  const won = secret.split('').every((c, i) => c === ' ' || displayWord[i]);
+  if (won) endGame(true);
+}
+
+// ═══════════════════════════════════════════════════════
+// END GAME
+// ═══════════════════════════════════════════════════════
+function endGame(won) {
+  gameOver = true;
+  revealAll(won);
+  stats.played++;
+  if (won) {
+    stats.won++; stats.streak++;
+    if (stats.streak > stats.maxStreak) stats.maxStreak = stats.streak;
+    spawnWinParticles(); playWin();
+    setStatus('🎉 ¡GANASTE!', 'correct');
+  } else {
+    stats.streak = 0;
+    document.getElementById('p-eyes').setAttribute('opacity','1');
+    setStatus('💀 ¡PERDISTE!', 'wrong-guess');
+  }
+  localStorage.setItem('hangman_stats', JSON.stringify(stats));
+  document.getElementById('streakVal').textContent = stats.streak + ' 🔥';
+
+  setTimeout(() => {
+    const card = document.getElementById('resultCard');
+    card.className = 'r-card ' + (won ? 'win' : 'lose');
+    document.getElementById('rEmoji').textContent  = won ? (errors===0?'🏆':errors<=2?'🌟':'✅') : '💀';
+    document.getElementById('rTitle').textContent  = won ? ['¡PERFECTO!','¡BRILLANTE!','¡MUY BIEN!','¡BIEN HECHO!','¡LO LOGRASTE!','¡POR LOS PELOS!'][errors] || '¡GANASTE!' : '¡PERDISTE!';
+    document.getElementById('rSub').textContent    = won ? `Con ${errors} error${errors!==1?'es':''}` : 'La palabra era:';
+    document.getElementById('rWord').textContent   = secret;
+    document.getElementById('rErrores').textContent= errors;
+    document.getElementById('rGanadas').textContent= stats.won;
+    document.getElementById('rRacha').textContent  = stats.streak;
+    document.getElementById('rRecBanner').style.display = (won && stats.streak === stats.maxStreak && stats.streak > 1) ? 'block' : 'none';
+    document.getElementById('resultOverlay').classList.add('show');
+  }, won ? 800 : 1200);
+}
+
+function closeResult() { document.getElementById('resultOverlay').classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════
+// HINT
+// ═══════════════════════════════════════════════════════
+function useHint() {
+  if (hintsLeft <= 0 || gameOver) return;
+  hintsLeft--;
+  const hint = currentHints[hintIndex % currentHints.length];
+  hintIndex++;
+
+  document.getElementById('hintIcon').textContent = currentHints.length > 1 ? ['💬','🔍','🧩'][hintIndex-1] || '💡' : '💡';
+  document.getElementById('hintText').innerHTML   = hint;
+
+  const hintBtn = document.getElementById('hintBtn');
+  if (hintsLeft <= 0) { hintBtn.disabled = true; hintBtn.textContent = '💡 Sin pistas'; }
+  else { hintBtn.textContent = `💡 Pista (${hintsLeft})`; }
+
+  setStatus('Pista revelada 👆', 'hint-used');
+}
+
+// ═══════════════════════════════════════════════════════
+// STATUS / PROGRESS
+// ═══════════════════════════════════════════════════════
+function setStatus(msg, cls) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg; el.className = 'status-msg ' + cls;
+}
+
+function updateProgress() {
+  const total   = secret.replace(/ /g,'').length;
+  const revealed= displayWord.filter((c,i) => secret[i] !== ' ' && c).length;
+  const pct     = Math.round((revealed / total) * 100);
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent  = pct + '%';
+}
+
+// ═══════════════════════════════════════════════════════
+// KEYBOARD EVENTS
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey) return;
+  const k = e.key.toUpperCase();
+  if (/^[A-ZÑ]$/.test(k)) handleKey(k);
+});
+
+// ═══════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════
+let actx = null;
+function getCtx(){ if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)(); return actx; }
+function playTone(freq, type='sine', dur=0.12){
+  try{
+    const ctx=getCtx(); ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=freq; o.type=type;
+    g.gain.setValueAtTime(0.12,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+function playWin(){
+  [440,550,660,880,1100].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.2),i*90));
+}
+
+// ═══════════════════════════════════════════════════════
+// PARTICLES
+// ═══════════════════════════════════════════════════════
+const canvas=document.getElementById('particles'), pctx=canvas.getContext('2d');
+let particles=[];
+const resize=()=>{canvas.width=innerWidth;canvas.height=innerHeight;};
+resize(); window.addEventListener('resize',resize);
+
+function spawnParticleAt(type, letter, color){
+  const btn = document.querySelector(`.key[data-key="${letter}"]`);
+  const cx = btn ? btn.getBoundingClientRect().left + btn.offsetWidth/2 : innerWidth/2;
+  const cy = btn ? btn.getBoundingClientRect().top  + btn.offsetHeight/2 : innerHeight/2;
+  for(let i=0;i<12;i++) particles.push({ x:cx,y:cy, vx:(Math.random()-0.5)*6, vy:(Math.random()-2)*5, life:1, decay:0.04+Math.random()*0.04, size:2+Math.random()*3, color });
+}
+
+function spawnWinParticles(){
+  const cols=['#39ff14','#00f5ff','#ffe600','#ff0090','#aa00ff','#ff6600'];
+  for(let i=0;i<120;i++) particles.push({
+    x:Math.random()*innerWidth, y:-10,
+    vx:(Math.random()-0.5)*5, vy:2+Math.random()*6,
+    life:1, decay:0.006+Math.random()*0.007,
+    size:3+Math.random()*5, color:cols[i%cols.length],
+    confetti:true, rot:Math.random()*Math.PI*2, rotV:(Math.random()-0.5)*0.18
+  });
+}
+
+function animP(){
+  pctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+    if(p.confetti){p.vy+=0.06;p.rot+=p.rotV;}
+    pctx.save(); pctx.globalAlpha=p.life; pctx.translate(p.x,p.y);
+    if(p.confetti){ pctx.rotate(p.rot); pctx.fillStyle=p.color; pctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2); }
+    else{ pctx.beginPath(); pctx.arc(0,0,p.size,0,Math.PI*2); pctx.fillStyle=p.color; pctx.shadowBlur=8; pctx.shadowColor=p.color; pctx.fill(); }
+    pctx.restore();
+  });
+  requestAnimationFrame(animP);
+}
+animP();
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+buildCatRow();
+newGame();
+</script>
+</body>
+</html>

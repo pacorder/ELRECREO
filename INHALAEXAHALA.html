@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Respiración Cósmica • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ══ VARIABLES ══ */
+:root {
+  --space:   #030818;
+  --space2:  #060f2e;
+  --nebula1: #1a0a3e;
+  --nebula2: #0a1e4a;
+  --cyan:    #00f5ff;
+  --purple:  #aa00ff;
+  --pink:    #ff0090;
+  --green:   #39ff14;
+  --yellow:  #ffe600;
+  --orange:  #ff6600;
+  --white:   #e8eeff;
+  --dim:     #3a3a7a;
+  --text:    #c8d8ff;
+
+  /* Phase colors */
+  --inhale-color:  #00f5ff;
+  --hold-color:    #aa00ff;
+  --exhale-color:  #ff6600;
+  --hold2-color:   #39ff14;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ width:100%; min-height:100%; }
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--space); color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ══ SPACE BACKGROUND ══ */
+#cosmos{
+  position:fixed; inset:0; z-index:0;
+  background:radial-gradient(ellipse at 30% 20%,rgba(26,10,62,0.8),transparent 60%),
+             radial-gradient(ellipse at 70% 80%,rgba(10,30,74,0.8),transparent 60%),
+             var(--space);
+  overflow:hidden;
+}
+
+/* Stars */
+.star{
+  position:absolute; border-radius:50%;
+  background:#fff; animation:twinkle ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{ opacity:0.2; transform:scale(1); }
+  50%{     opacity:1;   transform:scale(1.3); }
+}
+
+/* Nebula clouds */
+.nebula{
+  position:absolute; border-radius:50%;
+  filter:blur(60px); pointer-events:none; animation:nebulaDrift 20s ease-in-out infinite alternate;
+}
+@keyframes nebulaDrift{
+  from{ transform:translate(0,0) scale(1); }
+  to  { transform:translate(30px,20px) scale(1.05); }
+}
+
+/* Shooting star */
+.shoot{
+  position:absolute; height:1px;
+  background:linear-gradient(90deg,transparent,white,transparent);
+  animation:shoot linear forwards;
+  opacity:0;
+}
+@keyframes shoot{
+  0%  { transform:translateX(0) translateY(0); opacity:0; width:0; }
+  10% { opacity:1; width:120px; }
+  90% { opacity:1; }
+  100%{ transform:translateX(300px) translateY(150px); opacity:0; width:80px; }
+}
+
+/* ══ APP ══ */
+#app{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center;
+  min-height:100vh; padding:0 16px 40px;
+}
+
+/* ══ HEADER ══ */
+header{
+  width:100%; max-width:580px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 0; margin-bottom:8px;
+}
+.back-btn{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:3px;
+  color:var(--dim); text-decoration:none;
+  padding:8px 12px; border:1px solid rgba(255,255,255,0.08); border-radius:6px;
+  transition:all 0.2s;
+}
+.back-btn:hover{ color:var(--cyan); border-color:rgba(0,245,255,0.3); }
+.h-title{
+  font-family:'Orbitron',monospace; font-size:0.95rem; font-weight:900; letter-spacing:3px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 8px rgba(0,245,255,0.4));
+}
+.streak-badge{
+  display:flex; align-items:center; gap:6px;
+  background:rgba(255,230,0,0.1); border:1px solid rgba(255,230,0,0.25);
+  border-radius:20px; padding:6px 12px;
+  font-family:'Orbitron',monospace; font-size:0.7rem; font-weight:700;
+  color:var(--yellow); text-shadow:0 0 8px rgba(255,230,0,0.5);
+}
+
+/* ══ SCREENS ══ */
+.screen{
+  width:100%; max-width:560px;
+  display:none; flex-direction:column; align-items:center;
+  animation:screenIn 0.4s ease;
+}
+.screen.active{ display:flex; }
+@keyframes screenIn{ from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+
+/* ══ START SCREEN ══ */
+.hero-title{
+  font-family:'Orbitron',monospace; font-size:clamp(1.6rem,5vw,2.4rem);
+  font-weight:900; text-align:center; line-height:1.2;
+  background:linear-gradient(135deg,var(--cyan),var(--purple),var(--pink));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(0,245,255,0.3));
+  margin-bottom:6px;
+}
+.hero-sub{
+  text-align:center; color:var(--dim); font-size:0.95rem;
+  letter-spacing:2px; text-transform:uppercase; margin-bottom:28px;
+}
+
+/* Session goals */
+.goals-row{
+  display:flex; gap:10px; margin-bottom:24px; width:100%; justify-content:center;
+}
+.goal-chip{
+  flex:1; max-width:100px; background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08); border-radius:12px;
+  padding:10px 8px; text-align:center; cursor:pointer; transition:all 0.2s;
+}
+.goal-chip:hover{ border-color:rgba(0,245,255,0.3); }
+.goal-chip.active{
+  background:rgba(0,245,255,0.08); border-color:rgba(0,245,255,0.5);
+  box-shadow:0 0 12px rgba(0,245,255,0.15);
+}
+.goal-num{
+  font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900;
+  color:var(--cyan); display:block; text-shadow:0 0 8px rgba(0,245,255,0.5);
+}
+.goal-lbl{ font-size:0.7rem; color:var(--dim); letter-spacing:1px; }
+
+/* Technique cards */
+.techniques{ display:flex; flex-direction:column; gap:12px; width:100%; margin-bottom:24px; }
+
+.tech-card{
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px; padding:18px 20px; cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.23,1,0.32,1); position:relative; overflow:hidden;
+}
+.tech-card::before{
+  content:''; position:absolute; inset:0; border-radius:18px;
+  opacity:0; transition:opacity 0.3s;
+}
+.tech-card:hover{ transform:translateY(-2px); }
+.tech-card.selected{ border-width:1.5px; }
+
+.tc-top{ display:flex; align-items:center; gap:14px; }
+.tc-icon{ font-size:2rem; flex-shrink:0; }
+.tc-info{ flex:1; }
+.tc-name{
+  font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700;
+  letter-spacing:2px; margin-bottom:4px;
+}
+.tc-desc{ font-size:0.82rem; color:var(--dim); line-height:1.4; }
+.tc-phases{
+  display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;
+}
+.tc-phase{
+  font-size:0.68rem; padding:3px 10px; border-radius:20px;
+  font-family:'Orbitron',monospace; letter-spacing:1px;
+}
+
+/* Tech: calma */
+.tech-calma{ border-color:rgba(0,245,255,0.25); }
+.tech-calma::before{ background:linear-gradient(135deg,rgba(0,245,255,0.07),transparent); }
+.tech-calma:hover{ box-shadow:0 8px 30px rgba(0,245,255,0.12); border-color:rgba(0,245,255,0.5); }
+.tech-calma.selected{ border-color:var(--cyan); box-shadow:0 0 20px rgba(0,245,255,0.2); }
+.tech-calma .tc-name{ color:var(--cyan); }
+.tc-phase.inhale { background:rgba(0,245,255,0.15); color:var(--cyan); }
+.tc-phase.hold   { background:rgba(170,0,255,0.15); color:var(--purple); }
+.tc-phase.exhale { background:rgba(255,102,0,0.15); color:var(--orange); }
+.tc-phase.hold2  { background:rgba(57,255,20,0.15); color:var(--green); }
+
+/* Tech: 478 */
+.tech-478{ border-color:rgba(170,0,255,0.25); }
+.tech-478::before{ background:linear-gradient(135deg,rgba(170,0,255,0.07),transparent); }
+.tech-478:hover{ box-shadow:0 8px 30px rgba(170,0,255,0.12); border-color:rgba(170,0,255,0.5); }
+.tech-478.selected{ border-color:var(--purple); box-shadow:0 0 20px rgba(170,0,255,0.2); }
+.tech-478 .tc-name{ color:var(--purple); }
+
+/* Tech: box */
+.tech-box{ border-color:rgba(57,255,20,0.25); }
+.tech-box::before{ background:linear-gradient(135deg,rgba(57,255,20,0.07),transparent); }
+.tech-box:hover{ box-shadow:0 8px 30px rgba(57,255,20,0.12); border-color:rgba(57,255,20,0.5); }
+.tech-box.selected{ border-color:var(--green); box-shadow:0 0 20px rgba(57,255,20,0.2); }
+.tech-box .tc-name{ color:var(--green); }
+
+/* Tech: custom */
+.tech-custom{ border-color:rgba(255,230,0,0.25); }
+.tech-custom::before{ background:linear-gradient(135deg,rgba(255,230,0,0.07),transparent); }
+.tech-custom:hover{ box-shadow:0 8px 30px rgba(255,230,0,0.12); border-color:rgba(255,230,0,0.5); }
+.tech-custom.selected{ border-color:var(--yellow); box-shadow:0 0 20px rgba(255,230,0,0.2); }
+.tech-custom .tc-name{ color:var(--yellow); }
+
+.custom-row{
+  display:flex; gap:10px; margin-top:14px;
+  padding-top:14px; border-top:1px solid rgba(255,255,255,0.06);
+}
+.custom-field{ flex:1; }
+.custom-field label{
+  display:block; font-size:0.68rem; letter-spacing:2px; color:var(--dim);
+  text-transform:uppercase; margin-bottom:5px;
+}
+.custom-field input{
+  width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px; padding:8px 12px; color:var(--white);
+  font-family:'Orbitron',monospace; font-size:1rem; text-align:center;
+  outline:none; transition:border-color 0.2s;
+}
+.custom-field input:focus{ border-color:rgba(255,230,0,0.5); }
+
+/* Options (voice toggle) */
+.options-row{
+  display:flex; align-items:center; gap:12px; width:100%; margin-bottom:20px;
+  padding:12px 16px; background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06); border-radius:12px;
+}
+.toggle{
+  width:44px; height:24px; background:rgba(255,255,255,0.1);
+  border-radius:12px; position:relative; cursor:pointer; flex-shrink:0;
+  border:1px solid rgba(255,255,255,0.15); transition:background 0.2s;
+}
+.toggle.on{ background:rgba(0,245,255,0.3); border-color:var(--cyan); }
+.toggle-knob{
+  width:18px; height:18px; border-radius:50%;
+  background:#fff; position:absolute; top:2px; left:2px;
+  transition:transform 0.2s;
+}
+.toggle.on .toggle-knob{ transform:translateX(20px); background:var(--cyan); }
+.opt-label{ font-size:0.85rem; color:var(--text); flex:1; }
+.opt-sub{ font-size:0.72rem; color:var(--dim); }
+
+/* Start button */
+.start-btn{
+  font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700; letter-spacing:3px;
+  padding:16px 40px; border-radius:50px; border:none; cursor:pointer; width:100%;
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  color:#fff; box-shadow:0 0 30px rgba(0,245,255,0.3);
+  transition:all 0.3s; animation:startPulse 2s ease-in-out infinite;
+}
+@keyframes startPulse{
+  0%,100%{ box-shadow:0 0 30px rgba(0,245,255,0.3); }
+  50%{     box-shadow:0 0 50px rgba(0,245,255,0.6), 0 0 0 8px rgba(0,245,255,0.08); }
+}
+.start-btn:hover{ transform:translateY(-2px); box-shadow:0 0 50px rgba(0,245,255,0.5); }
+
+/* ══ EXERCISE SCREEN ══ */
+/* Session bar */
+.session-bar{
+  display:flex; justify-content:space-between; align-items:center;
+  width:100%; margin-bottom:16px; padding:10px 16px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+}
+.sbar-item{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.sbar-val{
+  font-family:'Orbitron',monospace; font-size:1rem; font-weight:700;
+  color:var(--cyan); text-shadow:0 0 8px rgba(0,245,255,0.4);
+}
+.sbar-lbl{ font-size:0.58rem; letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
+
+/* Astronaut + Breathing visual */
+.breathing-area{
+  width:100%; display:flex; flex-direction:column; align-items:center;
+  position:relative; margin:8px 0;
+}
+
+/* Outer ring */
+.outer-ring{
+  width:min(280px,72vw); height:min(280px,72vw);
+  border-radius:50%; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* Particle rings */
+.ring-orbit{
+  position:absolute; inset:0; border-radius:50%;
+  border:1px solid transparent; animation:orbitSpin linear infinite;
+}
+.ring-orbit:nth-child(1){ border-color:rgba(0,245,255,0.15); animation-duration:8s; }
+.ring-orbit:nth-child(2){ inset:10px; border-color:rgba(170,0,255,0.1); animation-duration:12s; animation-direction:reverse; }
+.ring-orbit:nth-child(3){ inset:20px; border-color:rgba(57,255,20,0.08); animation-duration:16s; }
+@keyframes orbitSpin{ to{ transform:rotate(360deg); } }
+
+/* Orbit dots */
+.orbit-dot{
+  position:absolute; width:6px; height:6px; border-radius:50%;
+  top:-3px; left:calc(50% - 3px);
+  box-shadow:0 0 8px currentColor;
+}
+
+/* Main breathing circle */
+.breath-circle{
+  width:min(200px,52vw); height:min(200px,52vw);
+  border-radius:50%; position:relative; z-index:5;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:transform 0.5s ease;
+}
+
+/* Astronaut SVG */
+#astronaut{ width:min(140px,36vw); z-index:6; animation:astroFloat 4s ease-in-out infinite; }
+@keyframes astroFloat{
+  0%,100%{ transform:translateY(0) rotate(-3deg); }
+  50%{     transform:translateY(-12px) rotate(3deg); }
+}
+#astro-suit{ transition:fill 1s ease; }
+#astro-visor{ transition:fill 1s ease; }
+#face-happy   { display:block; }
+#face-hold    { display:none; }
+#face-exhale  { display:none; }
+
+/* Pulsing glow around astronaut */
+.breath-glow{
+  position:absolute; inset:-20px; border-radius:50%;
+  pointer-events:none; z-index:4;
+  transition:box-shadow 0.8s ease, background 0.8s ease;
+}
+
+/* Phase ring SVG */
+.phase-svg{
+  position:absolute; inset:0; z-index:3;
+}
+.phase-ring-bg  { fill:none; stroke:rgba(255,255,255,0.05); stroke-width:8; }
+.phase-ring-fill{
+  fill:none; stroke-width:8; stroke-linecap:round;
+  stroke-dasharray:565; stroke-dashoffset:565;
+  transform:rotate(-90deg); transform-origin:50% 50%;
+  transition:stroke-dashoffset 0.25s linear, stroke 0.5s ease;
+}
+
+/* Phase label */
+.phase-label{
+  font-family:'Orbitron',monospace; font-size:clamp(0.85rem,3vw,1.1rem);
+  font-weight:900; letter-spacing:4px; text-transform:uppercase;
+  margin:14px 0 6px; transition:color 0.5s, text-shadow 0.5s;
+}
+.phase-count{
+  font-family:'Orbitron',monospace; font-size:clamp(2.5rem,10vw,4rem);
+  font-weight:900; line-height:1;
+  transition:color 0.5s, text-shadow 0.5s;
+}
+
+/* Cycle dots */
+.cycle-dots{
+  display:flex; gap:8px; margin:14px 0 10px;
+}
+.c-dot{
+  width:10px; height:10px; border-radius:50%;
+  background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+  transition:all 0.3s;
+}
+.c-dot.done{
+  background:var(--cyan); border-color:var(--cyan);
+  box-shadow:0 0 8px rgba(0,245,255,0.6);
+}
+.c-dot.active{
+  background:rgba(0,245,255,0.4); border-color:var(--cyan);
+  box-shadow:0 0 12px rgba(0,245,255,0.5); animation:dotPulse 1s ease-in-out infinite;
+}
+@keyframes dotPulse{ 0%,100%{transform:scale(1)}50%{transform:scale(1.3)} }
+
+/* Phase progress bar */
+.phase-prog-wrap{
+  width:100%; margin:10px 0;
+}
+.phase-prog-track{
+  height:6px; background:rgba(255,255,255,0.06); border-radius:6px; overflow:hidden;
+}
+.phase-prog-fill{
+  height:100%; width:0%; border-radius:6px;
+  transition:width 0.2s linear, background 0.5s;
+}
+
+/* Voice indicator */
+.voice-indicator{
+  display:flex; align-items:center; gap:8px; margin:8px 0;
+  font-size:0.8rem; color:var(--dim); height:20px;
+}
+.voice-waves{ display:flex; align-items:center; gap:3px; }
+.vw{ width:3px; background:var(--cyan); border-radius:3px; animation:vwave ease-in-out infinite; }
+.vw:nth-child(1){ height:6px;  animation-duration:0.5s; animation-delay:0s; }
+.vw:nth-child(2){ height:12px; animation-duration:0.5s; animation-delay:0.1s; }
+.vw:nth-child(3){ height:8px;  animation-duration:0.5s; animation-delay:0.2s; }
+.vw:nth-child(4){ height:14px; animation-duration:0.5s; animation-delay:0.15s; }
+.vw:nth-child(5){ height:6px;  animation-duration:0.5s; animation-delay:0.05s; }
+@keyframes vwave{ 0%,100%{transform:scaleY(0.4)} 50%{transform:scaleY(1)} }
+.voice-indicator.hidden{ opacity:0; }
+
+/* Controls */
+.ex-controls{ display:flex; gap:10px; width:100%; margin-top:12px; }
+.ex-btn{
+  flex:1; font-family:'Orbitron',monospace; font-size:0.65rem; font-weight:700;
+  letter-spacing:2px; padding:12px 8px; border-radius:10px; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:var(--dim);
+  transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.ex-btn:hover{ color:var(--text); border-color:rgba(0,245,255,0.3); }
+.ex-btn.pause-btn:hover{ color:var(--yellow); border-color:rgba(255,230,0,0.4); }
+.ex-btn.stop-btn:hover { color:var(--pink);   border-color:rgba(255,0,144,0.4); }
+
+/* ══ COMPLETE SCREEN ══ */
+.complete-wrap{ text-align:center; padding:10px 0; }
+.complete-emoji{ font-size:4rem; display:block; margin-bottom:12px; animation:bounce 0.8s ease infinite alternate; }
+@keyframes bounce{ from{transform:translateY(0)}to{transform:translateY(-10px)} }
+.complete-title{
+  font-family:'Orbitron',monospace; font-size:1.6rem; font-weight:900; letter-spacing:3px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  margin-bottom:8px;
+}
+.complete-sub{ color:var(--dim); font-size:0.9rem; letter-spacing:2px; margin-bottom:24px; }
+.complete-stats{
+  display:flex; justify-content:center; gap:20px; margin-bottom:24px; flex-wrap:wrap;
+}
+.cs{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:14px 18px; }
+.cs-val{ font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:900; color:var(--cyan); display:block; text-shadow:0 0 10px rgba(0,245,255,0.4); }
+.cs-lbl{ font-size:0.6rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+.streak-unlocked{
+  background:rgba(255,230,0,0.08); border:1px solid rgba(255,230,0,0.3);
+  border-radius:12px; padding:12px 20px; margin-bottom:20px;
+  font-family:'Orbitron',monospace; font-size:0.7rem; letter-spacing:3px;
+  color:var(--yellow); text-transform:uppercase; animation:recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse{ 0%,100%{opacity:1}50%{opacity:0.5} }
+.benefit-tip{
+  background:rgba(0,245,255,0.05); border:1px solid rgba(0,245,255,0.15);
+  border-radius:12px; padding:14px 18px; margin-bottom:22px;
+  font-size:0.88rem; color:var(--text); line-height:1.6; text-align:left;
+}
+.benefit-tip b{ color:var(--cyan); }
+.complete-btns{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.cbtn{
+  font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:3px;
+  padding:13px 24px; border-radius:10px; cursor:pointer; transition:all 0.2s;
+}
+.cbtn.primary{
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  color:#fff; border:none; box-shadow:0 0 20px rgba(0,245,255,0.3);
+}
+.cbtn.primary:hover{ transform:translateY(-2px); box-shadow:0 0 30px rgba(0,245,255,0.5); }
+.cbtn.secondary{ background:rgba(255,255,255,0.06); color:var(--dim); border:1px solid rgba(255,255,255,0.1); }
+.cbtn.secondary:hover{ color:var(--text); border-color:rgba(0,245,255,0.3); }
+
+/* ══ HOW TO MODAL ══ */
+.help-overlay{
+  position:fixed; inset:0; z-index:200;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(3,8,24,0.94); backdrop-filter:blur(14px); padding:20px;
+}
+.help-overlay.show{ display:flex; animation:screenIn 0.3s ease; }
+.h-card{
+  background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(170,0,255,0.05));
+  border:1px solid rgba(0,245,255,0.18); border-radius:24px;
+  padding:36px 40px; max-width:500px; width:100%; position:relative;
+  max-height:90vh; overflow-y:auto;
+  scrollbar-width:thin; scrollbar-color:rgba(0,245,255,0.2) transparent;
+}
+.h-close{
+  position:absolute; top:16px; right:16px; width:30px; height:30px;
+  border-radius:50%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer; color:var(--dim); display:grid; place-items:center; font-size:0.8rem; transition:all 0.2s;
+}
+.h-close:hover{ color:var(--text); border-color:rgba(0,245,255,0.4); }
+.h-icon{ font-size:2.5rem; text-align:center; margin-bottom:12px; display:block; }
+.h-title{
+  font-family:'Orbitron',monospace; font-size:1rem; font-weight:900; letter-spacing:3px; text-align:center;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:4px;
+}
+.h-sub2{ text-align:center; color:var(--dim); font-size:0.78rem; letter-spacing:2px; margin-bottom:20px; }
+.h-sec{ margin-bottom:16px; }
+.h-sec-title{
+  font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:4px;
+  text-transform:uppercase; color:var(--cyan); margin-bottom:8px;
+  display:flex; align-items:center; gap:8px;
+}
+.h-sec-title::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(0,245,255,0.3),transparent); }
+.h-steps{ display:flex; flex-direction:column; gap:8px; }
+.h-step{
+  display:flex; align-items:flex-start; gap:10px;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px; padding:10px 13px;
+}
+.h-num{ font-family:'Orbitron',monospace; font-size:0.8rem; font-weight:900; color:var(--cyan); min-width:20px; }
+.h-txt{ font-size:0.86rem; color:var(--text); line-height:1.5; }
+.h-txt b{ color:var(--yellow); }
+.h-foot{ margin-top:20px; }
+.cbtn.fullw{ width:100%; justify-content:center; background:linear-gradient(135deg,var(--cyan),var(--purple)); color:#fff; border:none; box-shadow:0 0 20px rgba(0,245,255,0.3); }
+
+/* ══ PARTICLE CANVAS ══ */
+#particles{ position:fixed; inset:0; pointer-events:none; z-index:10; }
+
+/* RESPONSIVE */
+@media(max-width:400px){
+  .outer-ring{ width:240px; height:240px; }
+  .breath-circle{ width:170px; height:170px; }
+  #astronaut{ width:110px; }
+  .phase-count{ font-size:3rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- COSMOS -->
+<div id="cosmos"></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <header>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+    <div class="h-title">RESPIRACIÓN CÓSMICA</div>
+    <div class="streak-badge">🔥 <span id="streakDisplay">0</span></div>
+  </header>
+
+  <!-- ══════════ START SCREEN ══════════ -->
+  <div class="screen active" id="startScreen">
+    <div class="hero-title">Entrena tus<br>Pulmones 🚀</div>
+    <div class="hero-sub">Técnicas de respiración guiada</div>
+
+    <!-- Cycles goal -->
+    <div style="font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:10px;align-self:flex-start">
+      Meta de ciclos
+    </div>
+    <div class="goals-row" id="goalsRow">
+      <div class="goal-chip active" data-cycles="3"><span class="goal-num">3</span><span class="goal-lbl">ciclos</span></div>
+      <div class="goal-chip" data-cycles="5"><span class="goal-num">5</span><span class="goal-lbl">ciclos</span></div>
+      <div class="goal-chip" data-cycles="7"><span class="goal-num">7</span><span class="goal-lbl">ciclos</span></div>
+      <div class="goal-chip" data-cycles="10"><span class="goal-num">10</span><span class="goal-lbl">ciclos</span></div>
+    </div>
+
+    <!-- Technique selector -->
+    <div style="font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:10px;align-self:flex-start">
+      Técnica
+    </div>
+    <div class="techniques" id="techList">
+
+      <div class="tech-card tech-calma selected" data-tech="calma">
+        <div class="tc-top">
+          <div class="tc-icon">🌙</div>
+          <div class="tc-info">
+            <div class="tc-name">Respiración en Calma</div>
+            <div class="tc-desc">Ideal para relajarse antes de dormir o después de ejercicio. Suave y tranquila.</div>
+          </div>
+        </div>
+        <div class="tc-phases">
+          <div class="tc-phase inhale">Inhala 4s</div>
+          <div class="tc-phase exhale">Exhala 6s</div>
+        </div>
+      </div>
+
+      <div class="tech-card tech-478" data-tech="478">
+        <div class="tc-top">
+          <div class="tc-icon">⭐</div>
+          <div class="tc-info">
+            <div class="tc-name">Técnica 4-7-8</div>
+            <div class="tc-desc">Desarrollada por el Dr. Weil. Excelente para reducir la ansiedad y mejorar el sueño.</div>
+          </div>
+        </div>
+        <div class="tc-phases">
+          <div class="tc-phase inhale">Inhala 4s</div>
+          <div class="tc-phase hold">Retén 7s</div>
+          <div class="tc-phase exhale">Exhala 8s</div>
+        </div>
+      </div>
+
+      <div class="tech-card tech-box" data-tech="box">
+        <div class="tc-top">
+          <div class="tc-icon">🌀</div>
+          <div class="tc-info">
+            <div class="tc-name">Box Breathing</div>
+            <div class="tc-desc">Usada por fuerzas especiales y atletas de élite. Mejora la concentración y el control.</div>
+          </div>
+        </div>
+        <div class="tc-phases">
+          <div class="tc-phase inhale">Inhala 4s</div>
+          <div class="tc-phase hold">Retén 4s</div>
+          <div class="tc-phase exhale">Exhala 4s</div>
+          <div class="tc-phase hold2">Retén 4s</div>
+        </div>
+      </div>
+
+      <div class="tech-card tech-custom" data-tech="custom">
+        <div class="tc-top">
+          <div class="tc-icon">⚙️</div>
+          <div class="tc-info">
+            <div class="tc-name">Personalizado</div>
+            <div class="tc-desc">Configura tus propios tiempos de inhalación y exhalación.</div>
+          </div>
+        </div>
+        <div class="tc-phases">
+          <div class="tc-phase inhale">Inhala</div>
+          <div class="tc-phase exhale">Exhala</div>
+        </div>
+        <div class="custom-row" id="customRow" style="display:none">
+          <div class="custom-field">
+            <label>Inhala (s)</label>
+            <input type="number" id="customIn" min="2" max="12" value="4"/>
+          </div>
+          <div class="custom-field">
+            <label>Retén (s)</label>
+            <input type="number" id="customHold" min="0" max="15" value="0"/>
+          </div>
+          <div class="custom-field">
+            <label>Exhala (s)</label>
+            <input type="number" id="customEx" min="2" max="15" value="6"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voice toggle -->
+    <div class="options-row">
+      <div class="toggle on" id="voiceToggle" onclick="toggleVoice()">
+        <div class="toggle-knob"></div>
+      </div>
+      <div>
+        <div class="opt-label">🎙️ Guía de voz activada</div>
+        <div class="opt-sub">El juego te guiará con voz durante la sesión</div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startSession()">🚀 Comenzar misión</button>
+
+    <button style="margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 20px;color:var(--dim);font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;cursor:pointer;transition:all 0.2s" onclick="document.getElementById('helpOverlay').classList.add('show')" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">
+      <i class="fa-solid fa-circle-question"></i> ¿Cómo funciona?
+    </button>
+  </div>
+
+  <!-- ══════════ EXERCISE SCREEN ══════════ -->
+  <div class="screen" id="exerciseScreen">
+    <!-- Session info bar -->
+    <div class="session-bar">
+      <div class="sbar-item">
+        <div class="sbar-val" id="techNameDisplay">Calma</div>
+        <div class="sbar-lbl">Técnica</div>
+      </div>
+      <div class="sbar-item">
+        <div class="sbar-val" id="cycleDisplay">0/5</div>
+        <div class="sbar-lbl">Ciclos</div>
+      </div>
+      <div class="sbar-item">
+        <div class="sbar-val" id="timerDisplay">0:00</div>
+        <div class="sbar-lbl">Tiempo</div>
+      </div>
+      <div class="sbar-item">
+        <div class="sbar-val" id="sessionStreakDisplay">0🔥</div>
+        <div class="sbar-lbl">Racha</div>
+      </div>
+    </div>
+
+    <!-- Breathing animation area -->
+    <div class="breathing-area">
+
+      <!-- Outer orbit ring -->
+      <div class="outer-ring">
+        <div class="ring-orbit"><div class="orbit-dot" style="color:var(--cyan);background:var(--cyan)"></div></div>
+        <div class="ring-orbit"><div class="orbit-dot" style="color:var(--purple);background:var(--purple)"></div></div>
+        <div class="ring-orbit"><div class="orbit-dot" style="color:var(--green);background:var(--green)"></div></div>
+
+        <!-- Breath circle with SVG ring -->
+        <div class="breath-circle" id="breathCircle">
+          <!-- SVG progress ring -->
+          <svg class="phase-svg" viewBox="0 0 200 200">
+            <circle class="phase-ring-bg" cx="100" cy="100" r="90"/>
+            <circle class="phase-ring-fill" id="phaseRing" cx="100" cy="100" r="90"/>
+          </svg>
+
+          <!-- Glow -->
+          <div class="breath-glow" id="breathGlow"></div>
+
+          <!-- Astronaut -->
+          <svg id="astronaut" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+            <!-- Suit body -->
+            <ellipse cx="50" cy="80" rx="28" ry="34" fill="#c8d8ff" id="astro-suit"/>
+            <!-- Chest plate -->
+            <rect x="36" y="70" width="28" height="20" rx="6" fill="#a0b8e8"/>
+            <!-- Control panel on chest -->
+            <rect x="40" y="74" width="20" height="12" rx="3" fill="#0a1a40"/>
+            <circle cx="44" cy="78" r="2" fill="#00f5ff"/>
+            <circle cx="50" cy="78" r="2" fill="#39ff14"/>
+            <circle cx="56" cy="78" r="2" fill="#ff0090"/>
+            <rect x="42" y="82" width="16" height="2" rx="1" fill="#1a3060"/>
+            <!-- Tank on back (side view hint) -->
+            <rect x="72" y="62" width="10" height="26" rx="5" fill="#8090b0"/>
+            <!-- Arms -->
+            <ellipse cx="24" cy="76" rx="8" ry="14" fill="#c8d8ff" id="astro-suit"/>
+            <ellipse cx="76" cy="76" rx="8" ry="14" fill="#c8d8ff"/>
+            <!-- Gloves -->
+            <ellipse cx="24" cy="90" rx="7" ry="5" fill="#9090b0"/>
+            <ellipse cx="76" cy="90" rx="7" ry="5" fill="#9090b0"/>
+            <!-- Legs -->
+            <ellipse cx="39" cy="110" rx="10" ry="8" fill="#a0b0d0"/>
+            <ellipse cx="61" cy="110" rx="10" ry="8" fill="#a0b0d0"/>
+            <!-- Boots -->
+            <ellipse cx="38" cy="117" rx="11" ry="5" fill="#6070a0"/>
+            <ellipse cx="62" cy="117" rx="11" ry="5" fill="#6070a0"/>
+            <!-- Helmet -->
+            <circle cx="50" cy="36" r="26" fill="#c8d8ff"/>
+            <!-- Visor -->
+            <ellipse cx="50" cy="36" rx="18" ry="17" fill="#001830" id="astro-visor"/>
+            <!-- Visor glass reflection -->
+            <ellipse cx="43" cy="28" rx="5" ry="4" fill="rgba(255,255,255,0.12)" transform="rotate(-20 43 28)"/>
+            <!-- Face: happy -->
+            <g id="face-happy">
+              <circle cx="44" cy="33" r="2.5" fill="#00f5ff" opacity="0.9"/>
+              <circle cx="56" cy="33" r="2.5" fill="#00f5ff" opacity="0.9"/>
+              <path d="M43 42 Q50 48 57 42" stroke="#00f5ff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/>
+            </g>
+            <!-- Face: hold (focused) -->
+            <g id="face-hold" style="display:none">
+              <circle cx="44" cy="33" r="2.5" fill="#aa00ff" opacity="0.9"/>
+              <circle cx="56" cy="33" r="2.5" fill="#aa00ff" opacity="0.9"/>
+              <line x1="43" y1="44" x2="57" y2="44" stroke="#aa00ff" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+              <!-- Concentration lines -->
+              <line x1="40" y1="29" x2="44" y2="31" stroke="#aa00ff" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+              <line x1="60" y1="29" x2="56" y2="31" stroke="#aa00ff" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+            </g>
+            <!-- Face: exhale (calm) -->
+            <g id="face-exhale" style="display:none">
+              <circle cx="44" cy="34" r="2" fill="#ff9800" opacity="0.8"/>
+              <circle cx="56" cy="34" r="2" fill="#ff9800" opacity="0.8"/>
+              <path d="M43 43 Q50 38 57 43" stroke="#ff9800" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+            </g>
+            <!-- Helmet ring -->
+            <circle cx="50" cy="36" r="26" fill="none" stroke="rgba(200,216,255,0.6)" stroke-width="2"/>
+            <!-- Antenna -->
+            <line x1="50" y1="10" x2="50" y2="3" stroke="#c8d8ff" stroke-width="2"/>
+            <circle cx="50" cy="2" r="2.5" fill="#00f5ff"/>
+            <circle cx="50" cy="2" r="2.5" fill="#00f5ff" opacity="0.5" style="animation:antennaPulse 1.5s ease-in-out infinite"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Phase label + count -->
+      <div class="phase-label" id="phaseLabel">PREPARA</div>
+      <div class="phase-count" id="phaseCount">3</div>
+
+      <!-- Voice indicator -->
+      <div class="voice-indicator hidden" id="voiceIndicator">
+        <div class="voice-waves">
+          <div class="vw"></div><div class="vw"></div><div class="vw"></div>
+          <div class="vw"></div><div class="vw"></div>
+        </div>
+        <span id="voiceText">Hablando...</span>
+      </div>
+
+      <!-- Cycle dots -->
+      <div class="cycle-dots" id="cycleDots"></div>
+
+      <!-- Phase progress -->
+      <div class="phase-prog-wrap">
+        <div class="phase-prog-track">
+          <div class="phase-prog-fill" id="phaseProgFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="ex-controls">
+      <button class="ex-btn pause-btn" id="pauseBtn" onclick="togglePause()">
+        <i class="fa-solid fa-pause" id="pauseIcon"></i> <span id="pauseText">Pausa</span>
+      </button>
+      <button class="ex-btn stop-btn" onclick="stopSession()">
+        <i class="fa-solid fa-stop"></i> Terminar
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ COMPLETE SCREEN ══════════ -->
+  <div class="screen" id="completeScreen">
+    <div class="complete-wrap" style="width:100%">
+      <span class="complete-emoji" id="completeEmoji">🏆</span>
+      <div class="complete-title" id="completeTitle">¡MISIÓN CUMPLIDA!</div>
+      <div class="complete-sub" id="completeSub">Sesión de respiración completada</div>
+      <div class="complete-stats" id="completeStats"></div>
+      <div class="streak-unlocked" id="streakUnlocked" style="display:none">🔥 ¡NUEVA RACHA DESBLOQUEADA!</div>
+      <div class="benefit-tip" id="benefitTip"></div>
+      <div class="complete-btns">
+        <button class="cbtn primary" onclick="goToStart()">🚀 Nueva sesión</button>
+        <button class="cbtn secondary" onclick="repeatSession()">🔁 Repetir</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- HELP MODAL -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="h-card">
+    <button class="h-close" onclick="document.getElementById('helpOverlay').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+    <span class="h-icon">🚀</span>
+    <div class="h-title">RESPIRACIÓN CÓSMICA</div>
+    <div class="h-sub2">Entrena tus pulmones como un astronauta</div>
+    <div class="h-sec">
+      <div class="h-sec-title">¿Qué es la respiración guiada?</div>
+      <div class="h-step"><div class="h-num">💡</div><div class="h-txt">Controlar conscientemente cómo respiras activa el sistema nervioso parasimpático, reduciendo el estrés y mejorando la concentración. <b>Practicar 5-10 minutos al día tiene efectos reales.</b></div></div>
+    </div>
+    <div class="h-sec">
+      <div class="h-sec-title">Las técnicas</div>
+      <div class="h-steps">
+        <div class="h-step"><div class="h-num">🌙</div><div class="h-txt"><b>Respiración en Calma (4-6):</b> Inhala 4s, exhala 6s. Ideal para relajarse. La exhalación más larga activa el nervio vago.</div></div>
+        <div class="h-step"><div class="h-num">⭐</div><div class="h-txt"><b>Técnica 4-7-8:</b> Inhala 4s, retén 7s, exhala 8s. Usada para reducir ansiedad y conciliar el sueño más rápido.</div></div>
+        <div class="h-step"><div class="h-num">🌀</div><div class="h-txt"><b>Box Breathing:</b> 4 fases iguales de 4s. Usada por los Navy SEALs para mantener la calma bajo presión.</div></div>
+      </div>
+    </div>
+    <div class="h-sec">
+      <div class="h-sec-title">Consejos</div>
+      <div class="h-steps">
+        <div class="h-step"><div class="h-num">✅</div><div class="h-txt"><b>Respira siempre por la nariz</b> — filtra, humidifica y regula mejor el aire.</div></div>
+        <div class="h-step"><div class="h-num">✅</div><div class="h-txt">Practica en un lugar <b>tranquilo y cómodo</b>, sentado o acostado.</div></div>
+        <div class="h-step"><div class="h-num">✅</div><div class="h-txt">Si sientes mareo, <b>para y descansa</b> — es normal al empezar.</div></div>
+      </div>
+    </div>
+    <div class="h-foot">
+      <button class="cbtn fullw" onclick="document.getElementById('helpOverlay').classList.remove('show')">¡Entendido, a respirar!</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes antennaPulse{ 0%,100%{opacity:0.5;r:2.5px}50%{opacity:1;r:4px} }
+</style>
+
+<script>
+// ══════════════════════════════════════════════════════
+// COSMOS BUILDER
+// ══════════════════════════════════════════════════════
+function buildCosmos(){
+  const cosmos = document.getElementById('cosmos');
+  // Stars
+  for(let i=0;i<180;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    const sz = 0.5+Math.random()*2.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s`;
+    cosmos.appendChild(s);
+  }
+  // Nebulas
+  const nColors = ['rgba(170,0,255,0.12)','rgba(0,100,255,0.1)','rgba(255,0,144,0.08)','rgba(0,200,255,0.08)'];
+  for(let i=0;i<4;i++){
+    const n=document.createElement('div');
+    n.className='nebula';
+    const sz=200+Math.random()*300;
+    n.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*80}%;top:${Math.random()*80}%;background:${nColors[i]};animation-delay:${i*3}s;animation-duration:${15+i*5}s`;
+    cosmos.appendChild(n);
+  }
+  // Occasional shooting stars
+  setInterval(()=>{
+    const s=document.createElement('div');
+    s.className='shoot';
+    s.style.cssText=`left:${Math.random()*60}%;top:${Math.random()*40}%;animation-duration:${1.5+Math.random()}s`;
+    cosmos.appendChild(s);
+    s.addEventListener('animationend',()=>s.remove());
+  }, 4000+Math.random()*6000);
+}
+buildCosmos();
+
+// ══════════════════════════════════════════════════════
+// TECHNIQUES
+// ══════════════════════════════════════════════════════
+const TECHNIQUES = {
+  calma:  { name:'Calma',   phases:[{name:'INHALA',dur:4,type:'inhale'},{name:'EXHALA',dur:6,type:'exhale'}], color:['#00f5ff','#ff6600'] },
+  '478':  { name:'4-7-8',   phases:[{name:'INHALA',dur:4,type:'inhale'},{name:'RETÉN',dur:7,type:'hold'},{name:'EXHALA',dur:8,type:'exhale'}], color:['#00f5ff','#aa00ff','#ff6600'] },
+  box:    { name:'Box',     phases:[{name:'INHALA',dur:4,type:'inhale'},{name:'RETÉN',dur:4,type:'hold'},{name:'EXHALA',dur:4,type:'exhale'},{name:'RETÉN',dur:4,type:'hold2'}], color:['#00f5ff','#aa00ff','#ff6600','#39ff14'] },
+  custom: { name:'Propio',  phases:[], color:['#ffe600','#ff6600'] },
+};
+
+const PHASE_COLORS = {
+  inhale: { ring:'#00f5ff', label:'#00f5ff', glow:'rgba(0,245,255,0.25)', bar:'#00f5ff', face:'happy' },
+  hold:   { ring:'#aa00ff', label:'#aa00ff', glow:'rgba(170,0,255,0.25)', bar:'#aa00ff', face:'hold'  },
+  exhale: { ring:'#ff6600', label:'#ff9800', glow:'rgba(255,102,0,0.2)',  bar:'#ff6600', face:'exhale'},
+  hold2:  { ring:'#39ff14', label:'#39ff14', glow:'rgba(57,255,20,0.2)',  bar:'#39ff14', face:'hold'  },
+};
+
+const BENEFITS = {
+  calma:  'La exhalación más larga que la inhalación <b>activa el nervio vago</b>, bajando la frecuencia cardíaca y los niveles de cortisol. Perfecta antes de dormir.',
+  '478':  'La retención de 7 segundos <b>eleva el CO₂ en sangre</b>, lo que envía señales de calma al cerebro. El Dr. Andrew Weil la llama "el tranquilizante natural".',
+  box:    'Igual cantidad de tiempo en cada fase <b>sincroniza el sistema nervioso</b>. Los Navy SEALs la practican para mantener la calma en situaciones extremas.',
+  custom: 'La respiración consciente activa el <b>sistema nervioso parasimpático</b>. Incluso 3 minutos diarios tienen efectos medibles en el estrés y la concentración.',
+};
+
+const VOICE_MSGS = {
+  inhale: ['Inhala profundo... suave y tranquilo','Respira hacia adentro... llena tus pulmones','Inhala con calma... siente el aire entrar'],
+  hold:   ['Retén... mantén el aire adentro','Aguanta... cuenta conmigo','Sostén el aire... muy bien'],
+  exhale: ['Ahora exhala... suave y lento','Suelta el aire... tranquilo','Exhala despacio... muy bien'],
+  hold2:  ['Pausa... prepárate para inhalar','Aguanta un momento más...','Ya casi... siguiente inhalación'],
+  complete:['¡Ciclo completado! ¡Muy bien!','¡Excelente! Otro ciclo terminado','¡Lo hiciste genial! Continúa así'],
+  start:  ['Comenzamos. Prepárate y relájate','Vamos a respirar juntos. Siéntate cómodo','Comenzamos la sesión. Tranquilo'],
+  finish: ['¡Sesión completa! Lo hiciste increíble','¡Misión cumplida! Tus pulmones están más fuertes','¡Fantástico! Completaste toda la sesión'],
+};
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let currentTech    = 'calma';
+let targetCycles   = 3;
+let voiceEnabled   = true;
+let isPaused       = false;
+let sessionActive  = false;
+let currentCycle   = 0;
+let currentPhaseIdx= 0;
+let phaseTimer     = null;
+let sessionTimer   = null;
+let phaseProgTimer = null;
+let sessionSecs    = 0;
+let phaseElapsed   = 0;
+let currentPhases  = [];
+let lastTech       = 'calma';
+let lastCycles     = 3;
+
+let streak = parseInt(localStorage.getItem('breath_streak') || '0');
+let lastDate = localStorage.getItem('breath_lastDate') || '';
+
+// ══════════════════════════════════════════════════════
+// UI EVENTS
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.tech-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    document.querySelectorAll('.tech-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+    currentTech = card.dataset.tech;
+    document.getElementById('customRow').style.display = currentTech==='custom' ? 'flex' : 'none';
+  });
+});
+
+document.querySelectorAll('.goal-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.goal-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    targetCycles = parseInt(chip.dataset.cycles);
+  });
+});
+
+function toggleVoice(){
+  voiceEnabled = !voiceEnabled;
+  const t = document.getElementById('voiceToggle');
+  t.classList.toggle('on', voiceEnabled);
+  const lbl = t.nextElementSibling.querySelector('.opt-label');
+  lbl.textContent = voiceEnabled ? '🎙️ Guía de voz activada' : '🔇 Guía de voz desactivada';
+}
+
+// ══════════════════════════════════════════════════════
+// START SESSION
+// ══════════════════════════════════════════════════════
+function startSession(){
+  // Build phases
+  if(currentTech === 'custom'){
+    const ci = parseInt(document.getElementById('customIn').value)||4;
+    const ch = parseInt(document.getElementById('customHold').value)||0;
+    const ce = parseInt(document.getElementById('customEx').value)||6;
+    const p = [{name:'INHALA',dur:ci,type:'inhale'}];
+    if(ch>0) p.push({name:'RETÉN',dur:ch,type:'hold'});
+    p.push({name:'EXHALA',dur:ce,type:'exhale'});
+    TECHNIQUES.custom.phases = p;
+  }
+
+  currentPhases = TECHNIQUES[currentTech].phases;
+  lastTech   = currentTech;
+  lastCycles = targetCycles;
+
+  currentCycle    = 0;
+  currentPhaseIdx = 0;
+  sessionSecs     = 0;
+  isPaused        = false;
+  sessionActive   = true;
+
+  // Update session bar
+  document.getElementById('techNameDisplay').textContent = TECHNIQUES[currentTech].name;
+  document.getElementById('cycleDisplay').textContent    = `0/${targetCycles}`;
+  document.getElementById('sessionStreakDisplay').textContent = streak+'🔥';
+
+  // Build cycle dots
+  buildCycleDots();
+
+  showScreen('exerciseScreen');
+
+  // Countdown 3-2-1 then start
+  countdown(3, ()=>{
+    speak(VOICE_MSGS.start[Math.floor(Math.random()*VOICE_MSGS.start.length)]);
+    startSessionTimer();
+    startPhase(0);
+  });
+}
+
+function countdown(n, cb){
+  setLabel('PREPARA', String(n), 'rgba(0,245,255,0.2)', '#00f5ff', '#00f5ff');
+  setFace('happy');
+  if(n<=0){ cb(); return; }
+  document.getElementById('phaseCount').textContent = n;
+  setTimeout(()=>countdown(n-1, cb), 1000);
+}
+
+function startSessionTimer(){
+  clearInterval(sessionTimer);
+  sessionTimer = setInterval(()=>{
+    if(!isPaused){ sessionSecs++; }
+    const m=Math.floor(sessionSecs/60), s=String(sessionSecs%60).padStart(2,'0');
+    document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+  },1000);
+}
+
+// ══════════════════════════════════════════════════════
+// PHASE ENGINE
+// ══════════════════════════════════════════════════════
+function startPhase(phaseIdx){
+  if(!sessionActive) return;
+  currentPhaseIdx = phaseIdx;
+  const phase = currentPhases[phaseIdx];
+  const cols  = PHASE_COLORS[phase.type];
+
+  // Update visuals
+  setLabel(phase.name, String(phase.dur), cols.glow, cols.label, cols.ring);
+  setFace(cols.face);
+  updateRing(0, cols.ring);
+  document.getElementById('phaseProgFill').style.background = cols.bar;
+  document.getElementById('phaseProgFill').style.width = '0%';
+
+  // Breath circle scale
+  animateBreathCircle(phase.type);
+
+  // Voice
+  speak(VOICE_MSGS[phase.type][Math.floor(Math.random()*VOICE_MSGS[phase.type].length)]);
+
+  phaseElapsed = 0;
+  const total = phase.dur;
+
+  clearInterval(phaseTimer);
+  clearInterval(phaseProgTimer);
+
+  // Progress sub-tick (every 100ms for smooth ring)
+  let subMs = 0;
+  const subTick = 100;
+  phaseProgTimer = setInterval(()=>{
+    if(isPaused) return;
+    subMs += subTick;
+    const pct = Math.min(subMs / (total*1000), 1);
+    document.getElementById('phaseProgFill').style.width = (pct*100)+'%';
+    // Ring
+    const offset = 565 * (1-pct);
+    document.getElementById('phaseRing').style.strokeDashoffset = offset;
+    // Countdown
+    const remaining = Math.ceil(total - subMs/1000);
+    document.getElementById('phaseCount').textContent = Math.max(0, remaining);
+    if(pct >= 1){
+      clearInterval(phaseProgTimer);
+      nextPhase();
+    }
+  }, subTick);
+}
+
+function nextPhase(){
+  if(!sessionActive) return;
+  const nextIdx = currentPhaseIdx + 1;
+  if(nextIdx >= currentPhases.length){
+    // Cycle complete
+    currentCycle++;
+    updateCycleDots(currentCycle);
+    document.getElementById('cycleDisplay').textContent = `${currentCycle}/${targetCycles}`;
+    speak(VOICE_MSGS.complete[Math.floor(Math.random()*VOICE_MSGS.complete.length)]);
+    spawnCycleParticles();
+    if(currentCycle >= targetCycles){
+      setTimeout(finishSession, 600);
+    } else {
+      setTimeout(()=>startPhase(0), 300);
+    }
+  } else {
+    setTimeout(()=>startPhase(nextIdx), 200);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// VISUALS
+// ══════════════════════════════════════════════════════
+function setLabel(name, count, glow, labelColor, ringColor){
+  const label = document.getElementById('phaseLabel');
+  const countEl= document.getElementById('phaseCount');
+  label.textContent = name;
+  label.style.color = labelColor;
+  label.style.textShadow = `0 0 20px ${labelColor}88`;
+  countEl.style.color = labelColor;
+  countEl.style.textShadow = `0 0 30px ${labelColor}66`;
+  document.getElementById('breathGlow').style.boxShadow = `0 0 60px ${glow}, 0 0 120px ${glow}`;
+}
+
+function setFace(type){
+  ['happy','hold','exhale'].forEach(f=>{
+    document.getElementById('face-'+f).style.display = f===type?'block':'none';
+  });
+}
+
+function updateRing(pct, color){
+  const ring = document.getElementById('phaseRing');
+  ring.style.stroke = color;
+  ring.style.strokeDashoffset = 565*(1-pct);
+}
+
+let breathScaleInterval = null;
+function animateBreathCircle(type){
+  clearInterval(breathScaleInterval);
+  const circle = document.getElementById('breathCircle');
+  if(type==='inhale'){
+    circle.style.transform='scale(1)';
+    breathScaleInterval = setInterval(()=>{
+      const s=1+Math.sin(Date.now()/600)*0.04;
+      circle.style.transform=`scale(${s})`;
+    },50);
+  } else if(type==='exhale'){
+    breathScaleInterval = setInterval(()=>{
+      const s=1-Math.sin(Date.now()/700)*0.04;
+      circle.style.transform=`scale(${s})`;
+    },50);
+  } else {
+    breathScaleInterval = setInterval(()=>{
+      const s=1+Math.sin(Date.now()/400)*0.015;
+      circle.style.transform=`scale(${s})`;
+    },50);
+  }
+}
+
+function buildCycleDots(){
+  const wrap = document.getElementById('cycleDots');
+  wrap.innerHTML='';
+  for(let i=0;i<targetCycles;i++){
+    const d=document.createElement('div');
+    d.className='c-dot'+(i===0?' active':'');
+    d.id=`cdot-${i}`;
+    wrap.appendChild(d);
+  }
+}
+function updateCycleDots(done){
+  for(let i=0;i<targetCycles;i++){
+    const d=document.getElementById(`cdot-${i}`);
+    if(!d) continue;
+    d.classList.remove('done','active');
+    if(i<done) d.classList.add('done');
+    else if(i===done) d.classList.add('active');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// PAUSE / STOP
+// ══════════════════════════════════════════════════════
+function togglePause(){
+  isPaused = !isPaused;
+  const icon = document.getElementById('pauseIcon');
+  const text = document.getElementById('pauseText');
+  icon.className = isPaused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+  text.textContent = isPaused ? 'Reanudar' : 'Pausa';
+  if(isPaused){
+    clearInterval(breathScaleInterval);
+    document.getElementById('breathCircle').style.transform='scale(1)';
+  } else {
+    const phase = currentPhases[currentPhaseIdx];
+    if(phase) animateBreathCircle(phase.type);
+  }
+}
+
+function stopSession(){
+  clearAll();
+  showScreen('startScreen');
+}
+
+function clearAll(){
+  sessionActive=false; isPaused=false;
+  clearInterval(phaseTimer); clearInterval(sessionTimer);
+  clearInterval(phaseProgTimer); clearInterval(breathScaleInterval);
+  window.speechSynthesis && speechSynthesis.cancel();
+}
+
+// ══════════════════════════════════════════════════════
+// FINISH
+// ══════════════════════════════════════════════════════
+function finishSession(){
+  clearAll();
+  speak(VOICE_MSGS.finish[Math.floor(Math.random()*VOICE_MSGS.finish.length)]);
+
+  // Update streak
+  const today = new Date().toDateString();
+  if(lastDate !== today){
+    streak++;
+    lastDate = today;
+    localStorage.setItem('breath_streak', streak);
+    localStorage.setItem('breath_lastDate', today);
+  }
+  document.getElementById('streakDisplay').textContent = streak;
+  document.getElementById('sessionStreakDisplay').textContent = streak+'🔥';
+
+  const m=Math.floor(sessionSecs/60), s=String(sessionSecs%60).padStart(2,'0');
+  const totalSecs = currentPhases.reduce((a,p)=>a+p.dur,0) * targetCycles;
+  const efficiency = Math.round((sessionSecs / totalSecs) * 100);
+
+  document.getElementById('completeEmoji').textContent =
+    targetCycles >= 10 ? '🏆' : targetCycles >= 7 ? '🌟' : targetCycles >= 5 ? '⭐' : '✅';
+  document.getElementById('completeTitle').textContent =
+    targetCycles >= 7 ? '¡MISIÓN MAESTRA!' : '¡MISIÓN CUMPLIDA!';
+  document.getElementById('completeSub').textContent =
+    `${targetCycles} ciclos de ${TECHNIQUES[currentTech].name} completados`;
+
+  document.getElementById('completeStats').innerHTML = `
+    <div class="cs"><span class="cs-val">${targetCycles}</span><span class="cs-lbl">Ciclos</span></div>
+    <div class="cs"><span class="cs-val">${m}:${s}</span><span class="cs-lbl">Tiempo</span></div>
+    <div class="cs"><span class="cs-val">${streak}🔥</span><span class="cs-lbl">Racha</span></div>
+  `;
+
+  document.getElementById('streakUnlocked').style.display =
+    (streak > 1 && lastDate === today) ? 'block' : 'none';
+
+  document.getElementById('benefitTip').innerHTML =
+    `🌌 <b>¿Sabías que?</b> ${BENEFITS[currentTech]}`;
+
+  showScreen('completeScreen');
+  spawnWinParticles();
+}
+
+function goToStart(){ showScreen('startScreen'); }
+function repeatSession(){ currentTech=lastTech; targetCycles=lastCycles; startSession(); }
+
+// ══════════════════════════════════════════════════════
+// VOICE
+// ══════════════════════════════════════════════════════
+function speak(text){
+  if(!voiceEnabled || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = 'es-ES'; msg.rate = 0.88; msg.pitch = 1.05; msg.volume = 0.85;
+  const indicator = document.getElementById('voiceIndicator');
+  const voiceText = document.getElementById('voiceText');
+  indicator.classList.remove('hidden');
+  voiceText.textContent = text;
+  msg.onend = ()=>indicator.classList.add('hidden');
+  msg.onerror= ()=>indicator.classList.add('hidden');
+  speechSynthesis.speak(msg);
+}
+
+// ══════════════════════════════════════════════════════
+// SCREEN MANAGER
+// ══════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════════════════
+const canvas=document.getElementById('particles'), pctx=canvas.getContext('2d');
+let particles=[];
+function resizePCanvas(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+resizePCanvas(); window.addEventListener('resize',resizePCanvas);
+
+function spawnCycleParticles(){
+  const cols=['#00f5ff','#aa00ff','#39ff14','#ffe600'];
+  for(let i=0;i<30;i++) particles.push({
+    x:innerWidth/2+( Math.random()-0.5)*100,
+    y:innerHeight/2+(Math.random()-0.5)*100,
+    vx:(Math.random()-0.5)*6, vy:(Math.random()-2)*5,
+    life:1, decay:0.03+Math.random()*0.04,
+    size:2+Math.random()*4, color:cols[i%cols.length]
+  });
+}
+function spawnWinParticles(){
+  const cols=['#00f5ff','#aa00ff','#ffe600','#ff0090','#39ff14'];
+  for(let i=0;i<140;i++) particles.push({
+    x:Math.random()*innerWidth, y:-10,
+    vx:(Math.random()-0.5)*5, vy:2+Math.random()*6,
+    life:1, decay:0.006+Math.random()*0.007,
+    size:3+Math.random()*5, color:cols[i%cols.length],
+    confetti:true, rot:Math.random()*Math.PI*2, rotV:(Math.random()-0.5)*0.18
+  });
+}
+function animParts(){
+  pctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;
+    if(p.confetti){p.vy+=0.06;p.rot+=p.rotV;}
+    pctx.save();pctx.globalAlpha=p.life;pctx.translate(p.x,p.y);
+    if(p.confetti){pctx.rotate(p.rot);pctx.fillStyle=p.color;pctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);}
+    else{pctx.beginPath();pctx.arc(0,0,p.size,0,Math.PI*2);pctx.fillStyle=p.color;pctx.shadowBlur=8;pctx.shadowColor=p.color;pctx.fill();}
+    pctx.restore();
+  });
+  requestAnimationFrame(animParts);
+}
+animParts();
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('streakDisplay').textContent = streak;
+</script>
+</body>
+</html>

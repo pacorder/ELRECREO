@@ -1,0 +1,6 @@
+{
+  "name": "CristoPlay",
+  "description": "Una colección de juegos retro y de lógica",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

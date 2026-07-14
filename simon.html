@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="google-adsense-account" content="ca-pub-2358850294363122">
+  <meta name="google-adsense-account" content="ca-pub-2358850294363122">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2358850294363122" crossorigin="anonymous"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2358850294363122" crossorigin="anonymous"></script>
+<title>Simón • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --bg:      #04040f;
+  --bg2:     #07071a;
+  --text:    #e0e0ff;
+  --dim:     #4a4a88;
+  --panel:   rgba(255,255,255,0.04);
+  --pborder: rgba(255,255,255,0.08);
+
+  --c-red:    #ff1744;
+  --c-blue:   #00b0ff;
+  --c-green:  #00e676;
+  --c-yellow: #ffe600;
+
+  --g-red:    0 0 40px #ff174488, 0 0 80px #ff174433;
+  --g-blue:   0 0 40px #00b0ff88, 0 0 80px #00b0ff33;
+  --g-green:  0 0 40px #00e67688, 0 0 80px #00e67633;
+  --g-yellow: 0 0 40px #ffe60088, 0 0 80px #ffe60033;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family:'Rajdhani',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  user-select:none;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,176,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg,rgba(0,176,255,0.025) 1px, transparent 1px);
+  background-size:55px 55px;
+  animation:gridScroll 28s linear infinite;
+}
+@keyframes gridScroll{ to{ background-position:0 55px; } }
+
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 700px 500px at 20% 20%, rgba(255,23,68,0.05) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 500px at 80% 80%, rgba(0,176,255,0.06) 0%,transparent 70%);
+}
+
+.scanlines{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+}
+
+/* ─── LAYOUT ─── */
+#app{ position:relative; z-index:2; display:flex; flex-direction:column; min-height:100vh; }
+
+/* ─── HEADER ─── */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 5%;
+  border-bottom:1px solid var(--pborder);
+  background:rgba(4,4,15,0.92); backdrop-filter:blur(8px);
+  position:sticky; top:0; z-index:50;
+}
+.back-btn{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:3px;
+  color:var(--dim); text-decoration:none;
+  padding:8px 14px; border:1px solid var(--pborder); border-radius:6px;
+  transition:all 0.2s;
+}
+.back-btn:hover{ color:var(--c-blue); border-color:rgba(0,176,255,0.4); }
+
+.header-center{ display:flex; flex-direction:column; align-items:center; }
+.header-title{
+  font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900; letter-spacing:5px;
+  background:linear-gradient(90deg,var(--c-red),var(--c-blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.header-sub{ font-size:0.6rem; letter-spacing:4px; color:var(--dim); text-transform:uppercase; }
+
+.header-record{
+  display:flex; flex-direction:column; align-items:flex-end;
+}
+.record-val{
+  font-family:'Orbitron',monospace; font-size:1.3rem; font-weight:900;
+  color:var(--c-yellow); text-shadow:0 0 15px rgba(255,230,0,0.6);
+}
+.record-lbl{ font-size:0.6rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+
+/* ─── INFO ROW ─── */
+.info-row{
+  display:flex; justify-content:center; gap:20px; padding:16px 5%;
+  flex-wrap:wrap;
+}
+.chip{
+  display:flex; align-items:center; gap:10px;
+  background:var(--panel); border:1px solid var(--pborder);
+  border-radius:10px; padding:10px 18px;
+}
+.chip-val{
+  font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900;
+  color:var(--c-blue); text-shadow:0 0 12px rgba(0,176,255,0.5);
+}
+.chip-lbl{ font-size:0.65rem; letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
+
+/* ─── STATUS BANNER ─── */
+.status-banner{
+  text-align:center; padding:10px 5%;
+  font-family:'Orbitron',monospace; font-size:0.75rem;
+  letter-spacing:4px; text-transform:uppercase;
+  min-height:38px;
+  transition:color 0.3s;
+}
+.status-banner.watch{ color:var(--c-yellow); animation:statusPulse 0.7s ease-in-out infinite; }
+.status-banner.go   { color:var(--c-green); }
+.status-banner.fail { color:var(--c-red); animation:statusFlash 0.2s ease 4; }
+.status-banner.idle { color:var(--dim); }
+@keyframes statusPulse{ 0%,100%{opacity:1}50%{opacity:0.4} }
+@keyframes statusFlash{ 0%,100%{opacity:1}50%{opacity:0} }
+
+/* ─── SIMON BOARD ─── */
+.board-wrapper{
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:10px 5% 20px;
+}
+
+.simon-outer{
+  position:relative;
+  width:min(420px, 88vw);
+  height:min(420px, 88vw);
+}
+
+/* Centre circle */
+.simon-center{
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:28%;height:28%;
+  background:var(--bg2);
+  border-radius:50%;
+  border:2px solid var(--pborder);
+  z-index:10;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:2px;
+  cursor:pointer;
+  transition:all 0.2s;
+  box-shadow:0 0 30px rgba(0,0,0,0.8);
+}
+.simon-center:hover{ border-color:rgba(0,176,255,0.4); }
+.simon-center-label{
+  font-family:'Orbitron',monospace; font-size:0.5rem; letter-spacing:3px;
+  color:var(--dim); text-transform:uppercase;
+}
+.simon-center-score{
+  font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900;
+  color:var(--text); text-shadow:0 0 10px rgba(255,255,255,0.3);
+  transition:transform 0.15s;
+}
+.simon-center-score.bump{ transform:scale(1.35); }
+
+/* Quadrant buttons */
+.simon-btn{
+  position:absolute;
+  width:48%; height:48%;
+  cursor:pointer;
+  transition:filter 0.12s, transform 0.12s;
+  border:none; outline:none;
+}
+.simon-btn::before{
+  content:'';
+  position:absolute; inset:6px;
+  background:inherit;
+  border-radius:inherit;
+  opacity:0.12;
+  filter:blur(12px);
+}
+
+.simon-btn:nth-child(1){ top:1%; left:1%;       border-radius:100% 4% 4% 4%; }
+.simon-btn:nth-child(2){ top:1%; right:1%;      border-radius:4% 100% 4% 4%; }
+.simon-btn:nth-child(3){ bottom:1%; left:1%;    border-radius:4% 4% 4% 100%; }
+.simon-btn:nth-child(4){ bottom:1%; right:1%;   border-radius:4% 4% 100% 4%; }
+
+.simon-btn[data-color="red"]    { background:radial-gradient(circle at 35% 35%, #ff5177, #c4001a); box-shadow:inset 0 0 30px rgba(0,0,0,0.4); }
+.simon-btn[data-color="blue"]   { background:radial-gradient(circle at 65% 35%, #64d8ff, #006db3); box-shadow:inset 0 0 30px rgba(0,0,0,0.4); }
+.simon-btn[data-color="green"]  { background:radial-gradient(circle at 35% 65%, #69ff9b, #00a152); box-shadow:inset 0 0 30px rgba(0,0,0,0.4); }
+.simon-btn[data-color="yellow"] { background:radial-gradient(circle at 65% 65%, #ffff72, #c7a500); box-shadow:inset 0 0 30px rgba(0,0,0,0.4); }
+
+.simon-btn.dim{
+  filter:brightness(0.22) saturate(0.4);
+}
+.simon-btn.lit{
+  filter:brightness(1.5) saturate(1.3);
+  transform:scale(1.02);
+}
+.simon-btn.lit[data-color="red"]    { box-shadow:var(--g-red),    inset 0 0 30px rgba(255,255,255,0.15); }
+.simon-btn.lit[data-color="blue"]   { box-shadow:var(--g-blue),   inset 0 0 30px rgba(255,255,255,0.15); }
+.simon-btn.lit[data-color="green"]  { box-shadow:var(--g-green),  inset 0 0 30px rgba(255,255,255,0.15); }
+.simon-btn.lit[data-color="yellow"] { box-shadow:var(--g-yellow), inset 0 0 30px rgba(255,255,255,0.15); }
+
+.simon-btn:active:not([disabled]){ transform:scale(0.97); }
+
+/* dividers */
+.simon-outer::before,
+.simon-outer::after {
+  content:''; position:absolute;
+  background:var(--bg); z-index:5; pointer-events:none;
+}
+.simon-outer::before{ top:0;left:49%;width:2%;height:100%; }
+.simon-outer::after { top:49%;left:0;width:100%;height:2%; }
+
+/* ─── SPEED BAR ─── */
+.speed-row{
+  display:flex; align-items:center; justify-content:center;
+  gap:10px; padding:4px 5% 16px; flex-wrap:wrap;
+}
+.speed-label{
+  font-family:'Orbitron',monospace; font-size:0.6rem;
+  letter-spacing:3px; color:var(--dim); text-transform:uppercase;
+}
+.speed-btn{
+  font-family:'Orbitron',monospace; font-size:0.65rem; font-weight:700;
+  letter-spacing:2px; padding:7px 14px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--pborder); background:var(--panel); color:var(--dim);
+  transition:all 0.2s;
+}
+.speed-btn:hover{ color:var(--text); border-color:rgba(0,176,255,0.3); }
+.speed-btn.active{ background:var(--c-blue); color:#000; border-color:transparent; box-shadow:0 0 14px rgba(0,176,255,0.5); }
+
+/* ─── PROGRESS ─── */
+.progress-row{
+  display:flex; align-items:center; gap:12px; justify-content:center;
+  padding:0 5% 14px;
+}
+.prog-label{ font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; white-space:nowrap; }
+.prog-bg{ flex:1;max-width:380px;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden; }
+.prog-fill{ height:100%;width:0%;background:linear-gradient(90deg,var(--c-blue),var(--c-green));border-radius:4px;box-shadow:0 0 8px rgba(0,230,118,0.5);transition:width 0.35s ease; }
+.prog-step{ font-family:'Orbitron',monospace;font-size:0.65rem;color:var(--c-green);white-space:nowrap; }
+
+/* ─── CONTROLS ─── */
+.controls-row{
+  display:flex; justify-content:center; gap:12px; padding:0 5% 30px; flex-wrap:wrap;
+}
+.ctrl-btn{
+  font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:3px; text-transform:uppercase;
+  padding:10px 20px; border-radius:8px; cursor:pointer;
+  background:var(--panel); color:var(--dim); border:1px solid var(--pborder);
+  transition:all 0.2s; display:flex; align-items:center; gap:8px;
+}
+.ctrl-btn:hover{ color:var(--text); border-color:rgba(0,176,255,0.35); }
+.ctrl-btn.start-btn{
+  background:linear-gradient(135deg,var(--c-blue),#0044cc);
+  color:#fff; border-color:transparent;
+  box-shadow:0 0 20px rgba(0,176,255,0.4);
+  font-size:0.75rem; padding:12px 28px;
+}
+.ctrl-btn.start-btn:hover{ box-shadow:0 0 35px rgba(0,176,255,0.65); transform:translateY(-1px); }
+
+/* ─── PARTICLE CANVAS ─── */
+#particles{ position:fixed;inset:0;pointer-events:none;z-index:3; }
+
+/* ─── GAME OVER OVERLAY ─── */
+.overlay{
+  position:fixed;inset:0;z-index:100;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(4,4,15,0.93);backdrop-filter:blur(14px);
+  padding:20px;
+}
+.overlay.show{ display:flex; animation:fadeIn 0.4s ease; }
+@keyframes fadeIn{ from{opacity:0}to{opacity:1} }
+
+.over-card{
+  background:linear-gradient(135deg,rgba(255,23,68,0.08),rgba(0,176,255,0.08));
+  border:1px solid rgba(255,23,68,0.25);
+  border-radius:24px; padding:48px 56px; max-width:460px; width:100%;
+  text-align:center;
+  box-shadow:0 0 60px rgba(255,23,68,0.1);
+  animation:cardIn 0.5s cubic-bezier(0.23,1,0.32,1) backwards;
+  animation-delay:0.15s;
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes cardIn{ from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1} }
+
+.over-emoji{ font-size:3.5rem; margin-bottom:14px; display:block; }
+.over-title{
+  font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; letter-spacing:3px;
+  margin-bottom:6px;
+}
+.over-sub{ color:var(--dim); letter-spacing:2px; font-size:0.9rem; margin-bottom:28px; }
+
+.over-stats{ display:flex; justify-content:center; gap:28px; margin-bottom:24px; }
+.over-stat{ display:flex;flex-direction:column;align-items:center;gap:4px; }
+.over-stat-val{
+  font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;
+  color:var(--c-blue);text-shadow:0 0 18px rgba(0,176,255,0.5);
+}
+.over-stat-lbl{ font-size:0.6rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase; }
+
+.record-banner{
+  background:rgba(255,230,0,0.08);border:1px solid rgba(255,230,0,0.3);
+  border-radius:8px;padding:8px 18px;margin-bottom:26px;
+  font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;
+  color:var(--c-yellow);text-transform:uppercase;
+  animation:recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.over-btns{ display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
+
+.btn-primary{
+  font-family:'Orbitron',monospace;font-size:0.75rem;font-weight:700;letter-spacing:3px;
+  padding:14px 28px;border-radius:10px;cursor:pointer;
+  background:linear-gradient(135deg,var(--c-blue),#0044cc);
+  color:#fff;border:none;box-shadow:0 0 20px rgba(0,176,255,0.4);
+  transition:all 0.2s;
+}
+.btn-primary:hover{ transform:translateY(-2px);box-shadow:0 0 30px rgba(0,176,255,0.6); }
+.btn-secondary{
+  font-family:'Orbitron',monospace;font-size:0.75rem;font-weight:700;letter-spacing:3px;
+  padding:14px 28px;border-radius:10px;cursor:pointer;
+  background:transparent;color:var(--dim);border:1px solid var(--pborder);transition:all 0.2s;
+}
+.btn-secondary:hover{ color:var(--text);border-color:rgba(0,176,255,0.3); }
+
+/* ─── WIN OVERLAY ─── */
+.win-card{
+  background:linear-gradient(135deg,rgba(0,230,118,0.08),rgba(0,176,255,0.08));
+  border:1px solid rgba(0,230,118,0.25);
+  border-radius:24px;padding:48px 56px;max-width:460px;width:100%;
+  text-align:center;
+  box-shadow:0 0 60px rgba(0,230,118,0.1);
+  animation:cardIn 0.5s cubic-bezier(0.23,1,0.32,1) backwards;
+  animation-delay:0.15s;
+}
+.win-title{
+  font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(90deg,var(--c-green),var(--c-blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;
+}
+
+/* ─── HELP MODAL ─── */
+.help-overlay{
+  position:fixed;inset:0;z-index:200;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(4,4,15,0.93);backdrop-filter:blur(14px);padding:20px;
+}
+.help-overlay.show{ display:flex;animation:fadeIn 0.3s ease; }
+
+.help-card{
+  background:linear-gradient(135deg,rgba(0,176,255,0.07),rgba(255,23,68,0.07));
+  border:1px solid rgba(0,176,255,0.2);border-radius:24px;
+  padding:42px 46px;max-width:520px;width:100%;position:relative;
+  max-height:90vh;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(0,176,255,0.2) transparent;
+  animation:cardIn 0.4s cubic-bezier(0.23,1,0.32,1) backwards;
+}
+.help-close{
+  position:absolute;top:16px;right:16px;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,0.05);border:1px solid var(--pborder);
+  cursor:pointer;color:var(--dim);display:grid;place-items:center;font-size:0.85rem;
+  transition:all 0.2s;
+}
+.help-close:hover{ color:var(--text);border-color:rgba(0,176,255,0.4); }
+
+.help-icon-big{ font-size:3rem;text-align:center;margin-bottom:14px;display:block; }
+.help-title-modal{
+  font-family:'Orbitron',monospace;font-size:1.25rem;font-weight:900;letter-spacing:3px;
+  text-align:center;
+  background:linear-gradient(90deg,var(--c-red),var(--c-blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:4px;
+}
+.help-sub-modal{
+  text-align:center;color:var(--dim);font-size:0.82rem;letter-spacing:2px;margin-bottom:26px;
+}
+
+.h-section{ margin-bottom:22px; }
+.h-section-title{
+  font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:4px;
+  text-transform:uppercase;color:var(--c-blue);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.h-section-title::after{ content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(0,176,255,0.3),transparent); }
+
+.h-steps{ display:flex;flex-direction:column;gap:9px; }
+.h-step{
+  display:flex;align-items:flex-start;gap:13px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--pborder);
+  border-radius:10px;padding:11px 15px;
+}
+.h-num{ font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:900;color:var(--c-blue);min-width:22px;text-align:center;text-shadow:0 0 8px rgba(0,176,255,0.5); }
+.h-text{ font-size:0.9rem;color:var(--text);line-height:1.5; }
+.h-text b{ color:var(--c-yellow); }
+
+.color-pills{ display:flex;gap:10px;flex-wrap:wrap;margin-top:4px; }
+.cpill{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px;border-radius:8px;
+  font-size:0.85rem;font-weight:600;letter-spacing:1px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.cpill-dot{ width:12px;height:12px;border-radius:50%; }
+
+.speed-pills{ display:flex;gap:8px;flex-wrap:wrap; }
+.spill{
+  font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:2px;
+  padding:6px 12px;border-radius:6px;border:1px solid var(--pborder);color:var(--dim);
+}
+.spill span{ display:block;font-size:0.52rem;color:var(--dim);margin-top:1px; }
+
+.h-tip{
+  background:rgba(255,230,0,0.06);border:1px solid rgba(255,230,0,0.2);
+  border-radius:10px;padding:13px 15px;
+  font-size:0.88rem;color:var(--text);line-height:1.5;
+}
+.h-tip b{ color:var(--c-yellow); }
+
+.help-foot{ margin-top:26px; }
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:500px){
+  .over-card,.win-card,.help-card{ padding:32px 22px; }
+  .over-title,.win-title{ font-size:1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+    <div class="header-center">
+      <div class="header-title">SIMÓN</div>
+      <div class="header-sub">Memoria • Secuencias • Reflejos</div>
+    </div>
+    <div class="header-record">
+      <div class="record-val" id="recordVal">—</div>
+      <div class="record-lbl">Récord</div>
+    </div>
+  </header>
+
+  <!-- INFO CHIPS -->
+  <div class="info-row">
+    <div class="chip">
+      <i class="fa-solid fa-list-ol" style="color:var(--c-blue);font-size:0.95rem"></i>
+      <div>
+        <div class="chip-val" id="roundVal">0</div>
+        <div class="chip-lbl">Ronda</div>
+      </div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-brain" style="color:var(--c-green);font-size:0.95rem"></i>
+      <div>
+        <div class="chip-val" id="seqLenVal" style="color:var(--c-green);text-shadow:0 0 12px rgba(0,230,118,0.5)">0</div>
+        <div class="chip-lbl">Secuencia</div>
+      </div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-bolt" style="color:var(--c-yellow);font-size:0.95rem"></i>
+      <div>
+        <div class="chip-val" id="streakVal" style="color:var(--c-yellow);text-shadow:0 0 12px rgba(255,230,0,0.5)">0</div>
+        <div class="chip-lbl">Racha</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-banner idle" id="statusBanner">Presiona INICIAR para jugar</div>
+
+  <!-- PROGRESS -->
+  <div class="progress-row">
+    <span class="prog-label">Tu turno</span>
+    <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+    <span class="prog-step" id="progStep">—</span>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-wrapper">
+    <div class="simon-outer" id="simonBoard">
+      <button class="simon-btn dim" data-color="red"    data-index="0" disabled></button>
+      <button class="simon-btn dim" data-color="blue"   data-index="1" disabled></button>
+      <button class="simon-btn dim" data-color="green"  data-index="2" disabled></button>
+      <button class="simon-btn dim" data-color="yellow" data-index="3" disabled></button>
+      <div class="simon-center" id="simonCenter" onclick="handleCenterClick()">
+        <div class="simon-center-label">Score</div>
+        <div class="simon-center-score" id="centerScore">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPEED -->
+  <div class="speed-row">
+    <span class="speed-label">Velocidad</span>
+    <button class="speed-btn active" data-speed="normal">Normal</button>
+    <button class="speed-btn"        data-speed="fast">Rápido</button>
+    <button class="speed-btn"        data-speed="turbo">Turbo ⚡</button>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-row">
+    <button class="ctrl-btn start-btn" id="startBtn" onclick="startGame()">
+      <i class="fa-solid fa-play"></i> Iniciar
+    </button>
+    <button class="ctrl-btn" onclick="document.getElementById('helpOverlay').classList.add('show')">
+      <i class="fa-solid fa-circle-question"></i> ¿Cómo jugar?
+    </button>
+  </div>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div class="overlay" id="overOverlay">
+  <div class="over-card">
+    <span class="over-emoji">💥</span>
+    <div class="over-title" style="color:var(--c-red)">¡ERROR!</div>
+    <div class="over-sub">La secuencia se rompió</div>
+    <div class="over-stats">
+      <div class="over-stat">
+        <div class="over-stat-val" id="overRound">0</div>
+        <div class="over-stat-lbl">Ronda</div>
+      </div>
+      <div class="over-stat">
+        <div class="over-stat-val" id="overSeq">0</div>
+        <div class="over-stat-lbl">Secuencia</div>
+      </div>
+      <div class="over-stat">
+        <div class="over-stat-val" id="overStreak">0</div>
+        <div class="over-stat-lbl">Racha máx.</div>
+      </div>
+    </div>
+    <div class="record-banner" id="overRecordBanner" style="display:none">⚡ ¡NUEVO RÉCORD! ⚡</div>
+    <div class="over-btns">
+      <button class="btn-primary" onclick="closeOver(); startGame()">▶ Otra vez</button>
+      <button class="btn-secondary" onclick="closeOver()">Menú</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="help-card">
+    <button class="help-close" onclick="document.getElementById('helpOverlay').classList.remove('show')">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <span class="help-icon-big">🎮</span>
+    <div class="help-title-modal">SIMÓN</div>
+    <div class="help-sub-modal">El juego clásico de memoria y secuencias</div>
+
+    <div class="h-section">
+      <div class="h-section-title">Objetivo</div>
+      <div class="h-step" style="background:rgba(0,176,255,0.05);border-color:rgba(0,176,255,0.2)">
+        <div class="h-num">🎯</div>
+        <div class="h-text">Repite la secuencia de colores que muestra Simón. Cada ronda se agrega <b>un color más</b>. ¡Llega lo más lejos posible sin equivocarte!</div>
+      </div>
+    </div>
+
+    <div class="h-section">
+      <div class="h-section-title">¿Cómo se juega?</div>
+      <div class="h-steps">
+        <div class="h-step">
+          <div class="h-num">1</div>
+          <div class="h-text">Simón <b>ilumina los colores</b> en secuencia. ¡Obsérvalo con atención!</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">2</div>
+          <div class="h-text">Cuando aparezca <b>"¡TU TURNO!"</b>, repite la secuencia tocando los colores <b>en el mismo orden</b>.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">3</div>
+          <div class="h-text">Si aciertas toda la secuencia, pasas a la siguiente ronda con <b>un color más</b>.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">4</div>
+          <div class="h-text">Si te equivocas, <b>el juego termina</b>. ¡Intenta superar tu récord!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-section">
+      <div class="h-section-title">Los 4 colores</div>
+      <div class="color-pills">
+        <div class="cpill" style="background:rgba(255,23,68,0.12)">
+          <div class="cpill-dot" style="background:var(--c-red)"></div> Rojo
+        </div>
+        <div class="cpill" style="background:rgba(0,176,255,0.12)">
+          <div class="cpill-dot" style="background:var(--c-blue)"></div> Azul
+        </div>
+        <div class="cpill" style="background:rgba(0,230,118,0.12)">
+          <div class="cpill-dot" style="background:var(--c-green)"></div> Verde
+        </div>
+        <div class="cpill" style="background:rgba(255,230,0,0.12)">
+          <div class="cpill-dot" style="background:var(--c-yellow)"></div> Amarillo
+        </div>
+      </div>
+    </div>
+
+    <div class="h-section">
+      <div class="h-section-title">Velocidades</div>
+      <div class="speed-pills">
+        <div class="spill" style="border-color:rgba(0,176,255,0.4);color:var(--c-blue)">Normal<span>Para aprender</span></div>
+        <div class="spill" style="border-color:rgba(255,230,0,0.4);color:var(--c-yellow)">Rápido<span>Para entrenados</span></div>
+        <div class="spill" style="border-color:rgba(255,23,68,0.4);color:var(--c-red)">Turbo ⚡<span>Modo difícil</span></div>
+      </div>
+    </div>
+
+    <div class="h-section">
+      <div class="h-section-title">Consejo</div>
+      <div class="h-tip">
+        💡 <b>Truco:</b> en lugar de solo mirar los colores, intenta <b>repetirlos en voz alta</b> mientras Simón los muestra. "Rojo, azul, verde..." — esto activa la memoria auditiva y te ayuda a recordar secuencias más largas.
+      </div>
+    </div>
+
+    <div class="help-foot">
+      <button class="btn-primary" style="width:100%" onclick="document.getElementById('helpOverlay').classList.remove('show')">
+        ¡Entendido, a jugar!
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+const TONES = { red:220, blue:330, green:264, yellow:440 };
+const FAIL_TONE = 110;
+
+function playTone(freq, duration=220, type='sine', vol=0.35) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration/1000);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration/1000);
+  } catch(e){}
+}
+
+function playFail() {
+  try {
+    const ctx = getAudio();
+    [FAIL_TONE, FAIL_TONE*0.9].forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0.3, ctx.currentTime + i*0.15);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.15 + 0.35);
+      osc.start(ctx.currentTime + i*0.15);
+      osc.stop(ctx.currentTime + i*0.15 + 0.35);
+    });
+  } catch(e){}
+}
+
+function playWin() {
+  [440,550,660,880].forEach((f,i) => {
+    setTimeout(() => playTone(f, 180, 'sine', 0.3), i*110);
+  });
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const COLORS = ['red','blue','green','yellow'];
+const SPEEDS = { normal:{show:550,gap:200}, fast:{show:380,gap:150}, turbo:{show:230,gap:100} };
+
+let sequence    = [];
+let playerIndex = 0;
+let round       = 0;
+let score       = 0;
+let streak      = 0;
+let maxStreak   = 0;
+let phase       = 'idle'; // idle | showing | input
+let currentSpeed = 'normal';
+let isShowing   = false;
+let highScore   = parseInt(localStorage.getItem('simon_record') || '0');
+
+// ─── RENDER HELPERS ──────────────────────────────────────────────────────────
+function setAllDim() {
+  document.querySelectorAll('.simon-btn').forEach(b => {
+    b.classList.remove('lit'); b.classList.add('dim');
+  });
+}
+
+function lightUp(color, duration) {
+  return new Promise(res => {
+    const btn = document.querySelector(`.simon-btn[data-color="${color}"]`);
+    btn.classList.remove('dim'); btn.classList.add('lit');
+    playTone(TONES[color], duration - 60);
+    spawnColorParticle(color);
+    setTimeout(() => {
+      btn.classList.remove('lit'); btn.classList.add('dim');
+      res();
+    }, duration);
+  });
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+function updateScoreDisplay() {
+  const el = document.getElementById('centerScore');
+  el.textContent = score;
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 200);
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('statusBanner');
+  el.textContent = msg;
+  el.className = `status-banner ${cls}`;
+}
+
+function updateChips() {
+  document.getElementById('roundVal').textContent  = round;
+  document.getElementById('seqLenVal').textContent = sequence.length;
+  document.getElementById('streakVal').textContent = streak;
+  document.getElementById('recordVal').textContent = highScore || '—';
+}
+
+function updateProgress(current, total) {
+  const pct = total > 0 ? (current / total) * 100 : 0;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progStep').textContent = total > 0 ? `${current} / ${total}` : '—';
+}
+
+function enableButtons(on) {
+  document.querySelectorAll('.simon-btn').forEach(b => {
+    b.disabled = !on;
+    if (on) b.classList.remove('dim');
+    else    b.classList.add('dim');
+  });
+}
+
+// ─── GAME LOGIC ──────────────────────────────────────────────────────────────
+async function startGame() {
+  // resume audio context on user gesture
+  try { getAudio().resume(); } catch(e){}
+
+  document.getElementById('overOverlay').classList.remove('show');
+  sequence    = [];
+  playerIndex = 0;
+  round       = 0;
+  score       = 0;
+  streak      = 0;
+  maxStreak   = 0;
+  phase       = 'showing';
+
+  document.getElementById('startBtn').disabled = true;
+  updateChips();
+  updateScoreDisplay();
+  updateProgress(0, 0);
+  setAllDim();
+
+  await sleep(400);
+  await nextRound();
+}
+
+async function nextRound() {
+  round++;
+  playerIndex = 0;
+  phase = 'showing';
+  isShowing = true;
+
+  // Add new color
+  sequence.push(COLORS[Math.floor(Math.random() * 4)]);
+  updateChips();
+  updateProgress(0, sequence.length);
+
+  setStatus('👀  Observa la secuencia...', 'watch');
+  enableButtons(false);
+
+  const sp = SPEEDS[currentSpeed];
+  await sleep(500);
+
+  for (let i = 0; i < sequence.length; i++) {
+    await lightUp(sequence[i], sp.show);
+    if (i < sequence.length - 1) await sleep(sp.gap);
+  }
+
+  setAllDim();
+  isShowing = false;
+  phase = 'input';
+  enableButtons(true);
+  setStatus('⚡  ¡TU TURNO!  ⚡', 'go');
+  updateProgress(0, sequence.length);
+}
+
+function handleButtonClick(color) {
+  if (phase !== 'input') return;
+  const btn = document.querySelector(`.simon-btn[data-color="${color}"]`);
+
+  // Flash the pressed button
+  btn.classList.add('lit');
+  playTone(TONES[color], 180);
+  spawnColorParticle(color);
+  setTimeout(() => { btn.classList.remove('lit'); btn.classList.add('dim'); }, 180);
+
+  if (color === sequence[playerIndex]) {
+    // Correct
+    playerIndex++;
+    score++;
+    streak++;
+    if (streak > maxStreak) maxStreak = streak;
+    updateScoreDisplay();
+    updateProgress(playerIndex, sequence.length);
+    updateChips();
+
+    if (playerIndex === sequence.length) {
+      // Round complete
+      phase = 'showing';
+      enableButtons(false);
+      setStatus('✅  ¡Correcto! Siguiente ronda...', 'go');
+      setTimeout(async () => {
+        await nextRound();
+      }, 900);
+    }
+  } else {
+    // Wrong
+    phase = 'fail';
+    enableButtons(false);
+    streak = 0;
+    updateChips();
+    playFail();
+    flashFail();
+    setTimeout(() => showGameOver(), 900);
+  }
+}
+
+function flashFail() {
+  setStatus('💥  ¡Error! Secuencia incorrecta', 'fail');
+  const board = document.getElementById('simonBoard');
+  board.style.animation = 'none';
+  // Flash all red briefly
+  document.querySelectorAll('.simon-btn').forEach(b => {
+    b.classList.add('lit');
+    b.style.filter = 'brightness(0.5) sepia(1) hue-rotate(320deg)';
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.simon-btn').forEach(b => {
+      b.classList.remove('lit'); b.classList.add('dim');
+      b.style.filter = '';
+    });
+  }, 600);
+}
+
+function showGameOver() {
+  const isRecord = score > highScore;
+  if (isRecord) {
+    highScore = score;
+    localStorage.setItem('simon_record', highScore);
+  }
+
+  document.getElementById('overRound').textContent  = round;
+  document.getElementById('overSeq').textContent    = sequence.length;
+  document.getElementById('overStreak').textContent = maxStreak;
+  document.getElementById('overRecordBanner').style.display = isRecord ? 'block' : 'none';
+  document.getElementById('overOverlay').classList.add('show');
+  document.getElementById('startBtn').disabled = false;
+  updateChips();
+}
+
+function closeOver() {
+  document.getElementById('overOverlay').classList.remove('show');
+  setStatus('Presiona INICIAR para jugar', 'idle');
+  setAllDim();
+  updateProgress(0, 0);
+  document.getElementById('startBtn').disabled = false;
+}
+
+function handleCenterClick() {
+  if (phase === 'idle') startGame();
+}
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
+document.querySelectorAll('.simon-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!btn.disabled) handleButtonClick(btn.dataset.color);
+  });
+  // Touch support
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (!btn.disabled) handleButtonClick(btn.dataset.color);
+  }, { passive:false });
+});
+
+document.querySelectorAll('.speed-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (phase === 'showing' || phase === 'input') return; // don't change mid-game
+    currentSpeed = btn.dataset.speed;
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ─── PARTICLES ───────────────────────────────────────────────────────────────
+const canvas = document.getElementById('particles');
+const ctx    = canvas.getContext('2d');
+let particles = [];
+
+const COLOR_HEX = {
+  red:'#ff1744', blue:'#00b0ff', green:'#00e676', yellow:'#ffe600'
+};
+
+function resizeCanvas() { canvas.width = innerWidth; canvas.height = innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+
+function spawnColorParticle(color) {
+  const btn  = document.querySelector(`.simon-btn[data-color="${color}"]`);
+  const rect = btn.getBoundingClientRect();
+  const cx   = rect.left + rect.width/2;
+  const cy   = rect.top  + rect.height/2;
+  const hex  = COLOR_HEX[color];
+  for (let i = 0; i < 14; i++) {
+    particles.push({
+      x:cx, y:cy,
+      vx:(Math.random()-0.5)*6,
+      vy:(Math.random()-2)*5,
+      life:1, decay:0.03+Math.random()*0.03,
+      size:2+Math.random()*4, color:hex
+    });
+  }
+}
+
+function animParticles() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life-=p.decay;
+    ctx.save();
+    ctx.globalAlpha = p.life;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 10; ctx.shadowColor = p.color;
+    ctx.fill();
+    ctx.restore();
+  });
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+updateChips();
+setStatus('Presiona INICIAR para jugar', 'idle');
+</script>
+</body>
+</html>

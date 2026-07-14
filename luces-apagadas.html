@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Luces Apagadas • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --bg:      #03030e;
+  --bg2:     #06061a;
+  --text:    #dde0ff;
+  --dim:     #444488;
+  --panel:   rgba(255,255,255,0.04);
+  --pb:      rgba(255,255,255,0.07);
+
+  --on:      #ffe600;
+  --on-glow: #ffb300;
+  --off:     #0d0d2a;
+  --off-b:   #1a1a3e;
+
+  --accent:  #00f5ff;
+  --pink:    #ff0090;
+  --green:   #39ff14;
+  --orange:  #ff6600;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+body{
+  font-family:'Rajdhani',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+  user-select:none;
+}
+
+/* BG */
+body::before{
+  content:''; position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,230,0,0.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,230,0,0.018) 1px,transparent 1px);
+  background-size:48px 48px;
+  animation:gridDrift 30s linear infinite;
+}
+@keyframes gridDrift{ to{ background-position:0 48px; } }
+
+body::after{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 700px 500px at 10% 15%, rgba(255,230,0,0.04) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 500px at 90% 85%, rgba(0,245,255,0.04) 0%,transparent 70%);
+}
+
+.scanlines{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+}
+
+/* ─── LAYOUT ─── */
+#app{ position:relative;z-index:2;display:flex;flex-direction:column;min-height:100vh; }
+
+/* ─── HEADER ─── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 5%;
+  border-bottom:1px solid var(--pb);
+  background:rgba(3,3,14,0.93);backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:50;
+}
+.back-btn{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:3px;
+  color:var(--dim);text-decoration:none;
+  padding:8px 13px;border:1px solid var(--pb);border-radius:6px;
+  transition:all 0.2s;
+}
+.back-btn:hover{ color:var(--accent);border-color:rgba(0,245,255,0.3); }
+
+.h-center{ display:flex;flex-direction:column;align-items:center; }
+.h-title{
+  font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;letter-spacing:4px;
+  background:linear-gradient(90deg,var(--on),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.h-sub{ font-size:0.58rem;letter-spacing:4px;color:var(--dim);text-transform:uppercase; }
+
+.h-moves{
+  display:flex;flex-direction:column;align-items:flex-end;
+}
+.h-moves-val{
+  font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;
+  color:var(--on);text-shadow:0 0 16px rgba(255,230,0,0.6);
+  transition:transform 0.12s;
+}
+.h-moves-val.bump{ transform:scale(1.3); }
+.h-moves-lbl{ font-size:0.58rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase; }
+
+/* ─── INFO ROW ─── */
+.info-row{
+  display:flex;justify-content:center;align-items:center;
+  gap:16px;padding:14px 5%;flex-wrap:wrap;
+}
+.chip{
+  display:flex;align-items:center;gap:9px;
+  background:var(--panel);border:1px solid var(--pb);
+  border-radius:10px;padding:9px 16px;
+}
+.chip-val{
+  font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;
+  color:var(--accent);text-shadow:0 0 10px rgba(0,245,255,0.5);
+}
+.chip-lbl{ font-size:0.62rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase; }
+
+/* ─── LEVEL BAR ─── */
+.level-bar{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;padding:10px 5%;flex-wrap:wrap;
+}
+.lv-label{
+  font-family:'Orbitron',monospace;font-size:0.6rem;
+  letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-right:4px;
+}
+.lv-btn{
+  font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;letter-spacing:2px;
+  padding:7px 14px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--pb);background:var(--panel);color:var(--dim);
+  transition:all 0.22s;
+}
+.lv-btn:hover{ color:var(--text);border-color:rgba(255,230,0,0.35); }
+.lv-btn.active{
+  background:var(--on);color:#000;border-color:transparent;
+  box-shadow:0 0 16px rgba(255,230,0,0.5);
+}
+
+/* ─── STATUS ─── */
+.status-bar{
+  text-align:center;padding:8px 5%;
+  font-family:'Orbitron',monospace;font-size:0.7rem;
+  letter-spacing:4px;text-transform:uppercase;min-height:34px;
+  transition:color 0.3s;
+}
+.status-bar.playing{ color:var(--dim); }
+.status-bar.win{     color:var(--green);animation:sPulse 0.6s ease-in-out infinite; }
+.status-bar.hint{    color:var(--pink); }
+@keyframes sPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ─── PROGRESS ─── */
+.prog-row{
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  padding:2px 5% 12px;
+}
+.prog-label{ font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase;white-space:nowrap; }
+.prog-bg{ flex:1;max-width:360px;height:4px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden; }
+.prog-fill{
+  height:100%;width:100%;
+  background:linear-gradient(90deg,var(--on),var(--orange));
+  border-radius:4px;box-shadow:0 0 8px rgba(255,230,0,0.5);
+  transition:width 0.4s ease;
+}
+.prog-pct{ font-family:'Orbitron',monospace;font-size:0.62rem;color:var(--on);white-space:nowrap; }
+
+/* ─── GRID WRAPPER ─── */
+.grid-wrapper{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:10px 4% 16px;
+}
+
+.grid-frame{
+  background:rgba(0,0,0,0.4);
+  border:1px solid rgba(255,230,0,0.12);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 0 60px rgba(255,230,0,0.04), inset 0 0 40px rgba(0,0,0,0.5);
+  position:relative;
+}
+
+.grid{
+  display:grid;
+  gap:8px;
+}
+
+/* ─── CELL ─── */
+.cell{
+  border-radius:10px;
+  cursor:pointer;
+  border:2px solid var(--off-b);
+  background:var(--off);
+  position:relative;
+  overflow:hidden;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.1s ease;
+}
+
+.cell::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 60%);
+  border-radius:inherit;
+  pointer-events:none;
+}
+
+.cell.on{
+  background:radial-gradient(circle at 40% 35%, #fff7a0, var(--on) 60%,var(--on-glow));
+  border-color:rgba(255,230,0,0.8);
+  box-shadow:
+    0 0 18px rgba(255,230,0,0.7),
+    0 0 40px rgba(255,180,0,0.3),
+    inset 0 0 12px rgba(255,255,255,0.2);
+}
+
+.cell:hover:not(.on){
+  background:#0f0f30;
+  border-color:rgba(0,245,255,0.35);
+  transform:scale(0.95);
+}
+.cell:hover.on{
+  transform:scale(0.95);
+}
+
+.cell:active{ transform:scale(0.88); }
+
+.cell.hint-cell{
+  border-color:var(--pink) !important;
+  box-shadow:0 0 16px rgba(255,0,144,0.6), 0 0 32px rgba(255,0,144,0.2) !important;
+  animation:hintPulse 0.8s ease-in-out infinite;
+}
+@keyframes hintPulse{
+  0%,100%{ box-shadow:0 0 16px rgba(255,0,144,0.6),0 0 32px rgba(255,0,144,0.2); }
+  50%{     box-shadow:0 0 28px rgba(255,0,144,0.9),0 0 56px rgba(255,0,144,0.4); }
+}
+
+.cell.flash-click{
+  animation:cellClick 0.2s ease;
+}
+@keyframes cellClick{
+  0%{ transform:scale(0.85); }
+  60%{ transform:scale(1.05); }
+  100%{ transform:scale(1); }
+}
+
+/* ─── CONTROLS ─── */
+.ctrl-row{
+  display:flex;justify-content:center;gap:10px;
+  padding:0 5% 26px;flex-wrap:wrap;
+}
+.ctrl-btn{
+  font-family:'Orbitron',monospace;font-size:0.62rem;letter-spacing:3px;text-transform:uppercase;
+  padding:10px 18px;border-radius:8px;cursor:pointer;
+  background:var(--panel);color:var(--dim);border:1px solid var(--pb);
+  transition:all 0.2s;display:flex;align-items:center;gap:8px;
+}
+.ctrl-btn:hover{ color:var(--text);border-color:rgba(0,245,255,0.3); }
+.ctrl-btn.warn:hover{ color:var(--on);border-color:rgba(255,230,0,0.4); }
+.ctrl-btn.pink-btn:hover{ color:var(--pink);border-color:rgba(255,0,144,0.4); }
+
+/* ─── PARTICLE CANVAS ─── */
+#particles{ position:fixed;inset:0;pointer-events:none;z-index:3; }
+
+/* ─── WIN OVERLAY ─── */
+.w-overlay{
+  position:fixed;inset:0;z-index:100;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(3,3,14,0.93);backdrop-filter:blur(14px);padding:20px;
+}
+.w-overlay.show{ display:flex;animation:fadeIn 0.4s ease; }
+@keyframes fadeIn{ from{opacity:0}to{opacity:1} }
+
+.w-card{
+  background:linear-gradient(135deg,rgba(255,230,0,0.08),rgba(0,245,255,0.06));
+  border:1px solid rgba(255,230,0,0.25);border-radius:24px;
+  padding:46px 54px;max-width:460px;width:100%;text-align:center;
+  box-shadow:0 0 80px rgba(255,230,0,0.08);
+  animation:cardIn 0.5s cubic-bezier(0.23,1,0.32,1) backwards;animation-delay:0.15s;
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes cardIn{ from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1} }
+
+.w-emoji{ font-size:3.5rem;margin-bottom:14px;display:block;animation:bounce 0.9s ease infinite alternate; }
+@keyframes bounce{ from{transform:translateY(0)}to{transform:translateY(-10px)} }
+.w-title{
+  font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(90deg,var(--on),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;
+}
+.w-sub{ color:var(--dim);letter-spacing:2px;font-size:0.88rem;margin-bottom:26px; }
+.w-stats{ display:flex;justify-content:center;gap:26px;margin-bottom:22px; }
+.w-stat{ display:flex;flex-direction:column;align-items:center;gap:4px; }
+.w-stat-val{
+  font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;
+  color:var(--on);text-shadow:0 0 18px rgba(255,230,0,0.6);
+}
+.w-stat-lbl{ font-size:0.6rem;letter-spacing:3px;color:var(--dim);text-transform:uppercase; }
+.rec-banner{
+  background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.25);
+  border-radius:8px;padding:8px 18px;margin-bottom:24px;
+  font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;
+  color:var(--accent);text-transform:uppercase;
+  animation:recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.w-btns{ display:flex;gap:12px;justify-content:center;flex-wrap:wrap; }
+.btn-primary{
+  font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:3px;
+  padding:13px 26px;border-radius:10px;cursor:pointer;
+  background:linear-gradient(135deg,var(--on),var(--orange));
+  color:#000;border:none;box-shadow:0 0 20px rgba(255,230,0,0.4);
+  transition:all 0.2s;
+}
+.btn-primary:hover{ transform:translateY(-2px);box-shadow:0 0 30px rgba(255,230,0,0.6); }
+.btn-secondary{
+  font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:3px;
+  padding:13px 26px;border-radius:10px;cursor:pointer;
+  background:transparent;color:var(--dim);border:1px solid var(--pb);transition:all 0.2s;
+}
+.btn-secondary:hover{ color:var(--text);border-color:rgba(0,245,255,0.3); }
+
+/* ─── HELP MODAL ─── */
+.help-overlay{
+  position:fixed;inset:0;z-index:200;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(3,3,14,0.93);backdrop-filter:blur(14px);padding:20px;
+}
+.help-overlay.show{ display:flex;animation:fadeIn 0.3s ease; }
+
+.h-card{
+  background:linear-gradient(135deg,rgba(255,230,0,0.06),rgba(0,245,255,0.05));
+  border:1px solid rgba(255,230,0,0.18);border-radius:24px;
+  padding:40px 44px;max-width:520px;width:100%;position:relative;
+  max-height:90vh;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(255,230,0,0.2) transparent;
+  animation:cardIn 0.4s cubic-bezier(0.23,1,0.32,1) backwards;
+}
+.h-close{
+  position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,0.04);border:1px solid var(--pb);
+  cursor:pointer;color:var(--dim);display:grid;place-items:center;font-size:0.85rem;
+  transition:all 0.2s;
+}
+.h-close:hover{ color:var(--text);border-color:rgba(255,230,0,0.4); }
+
+.h-icon{ font-size:2.8rem;text-align:center;margin-bottom:14px;display:block; }
+.h-title{
+  font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;letter-spacing:3px;
+  text-align:center;
+  background:linear-gradient(90deg,var(--on),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:4px;
+}
+.h-subtitle{ text-align:center;color:var(--dim);font-size:0.82rem;letter-spacing:2px;margin-bottom:24px; }
+
+.h-sec{ margin-bottom:20px; }
+.h-sec-title{
+  font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:4px;
+  text-transform:uppercase;color:var(--on);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.h-sec-title::after{ content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(255,230,0,0.3),transparent); }
+
+.h-steps{ display:flex;flex-direction:column;gap:9px; }
+.h-step{
+  display:flex;align-items:flex-start;gap:12px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--pb);
+  border-radius:10px;padding:11px 14px;
+}
+.h-num{ font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:900;color:var(--on);min-width:22px;text-align:center; }
+.h-txt{ font-size:0.9rem;color:var(--text);line-height:1.5; }
+.h-txt b{ color:var(--on); }
+.h-txt em{ color:var(--accent);font-style:normal;font-weight:600; }
+
+/* Mini grid demo */
+.demo-grid{
+  display:inline-grid;grid-template-columns:repeat(3,28px);gap:4px;
+  vertical-align:middle;margin:4px 6px;
+}
+.dc{
+  width:28px;height:28px;border-radius:5px;
+  border:1px solid var(--off-b);background:var(--off);
+}
+.dc.on{
+  background:var(--on);border-color:rgba(255,230,0,0.8);
+  box-shadow:0 0 8px rgba(255,230,0,0.5);
+}
+.dc.target{ border:1.5px dashed var(--pink) !important; }
+
+.h-tip{
+  background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.18);
+  border-radius:10px;padding:13px 15px;
+  font-size:0.88rem;color:var(--text);line-height:1.5;
+}
+.h-tip b{ color:var(--accent); }
+
+.size-chips{ display:flex;gap:8px;flex-wrap:wrap; }
+.sc{
+  font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:2px;
+  padding:6px 12px;border-radius:6px;
+  border:1px solid rgba(255,230,0,0.25);color:var(--on);
+}
+.sc span{ display:block;font-size:0.52rem;color:var(--dim);margin-top:1px; }
+
+.h-foot{ margin-top:24px; }
+
+@media(max-width:480px){
+  .h-card,.w-card{ padding:28px 18px; }
+  .w-title{ font-size:1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+    <div class="h-center">
+      <div class="h-title">Luces Apagadas</div>
+      <div class="h-sub">Lógica · Estrategia · Ingenio</div>
+    </div>
+    <div class="h-moves">
+      <div class="h-moves-val" id="movesVal">0</div>
+      <div class="h-moves-lbl">Movimientos</div>
+    </div>
+  </header>
+
+  <!-- INFO ROW -->
+  <div class="info-row">
+    <div class="chip">
+      <i class="fa-solid fa-lightbulb" style="color:var(--on);font-size:0.95rem"></i>
+      <div>
+        <div class="chip-val" id="litVal">0</div>
+        <div class="chip-lbl">Encendidas</div>
+      </div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-trophy" style="color:var(--accent);font-size:0.95rem"></i>
+      <div>
+        <div class="chip-val" id="recVal" style="color:var(--accent);text-shadow:0 0 10px rgba(0,245,255,0.5)">—</div>
+        <div class="chip-lbl">Récord</div>
+      </div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-star" style="color:var(--green);font-size:0.95rem"></i>
+      <div>
+        <div class="chip-val" id="puzzleNumVal" style="color:var(--green);text-shadow:0 0 10px rgba(57,255,20,0.5)">1</div>
+        <div class="chip-lbl">Puzzle</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL BAR -->
+  <div class="level-bar">
+    <span class="lv-label">Grilla</span>
+    <button class="lv-btn active" data-size="3">3×3</button>
+    <button class="lv-btn"        data-size="4">4×4</button>
+    <button class="lv-btn"        data-size="5">5×5</button>
+    <button class="lv-btn"        data-size="6">6×6</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar playing" id="statusBar">Apaga todas las luces</div>
+
+  <!-- PROGRESS -->
+  <div class="prog-row">
+    <span class="prog-label">Luces</span>
+    <div class="prog-bg"><div class="prog-fill" id="progFill" style="width:100%"></div></div>
+    <span class="prog-pct" id="progPct">0%</span>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid-wrapper">
+    <div class="grid-frame">
+      <div class="grid" id="gameGrid"></div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="ctrl-row">
+    <button class="ctrl-btn warn" onclick="newPuzzle()">
+      <i class="fa-solid fa-shuffle"></i> Nuevo
+    </button>
+    <button class="ctrl-btn" onclick="resetPuzzle()">
+      <i class="fa-solid fa-rotate-left"></i> Reiniciar
+    </button>
+    <button class="ctrl-btn pink-btn" onclick="showHint()">
+      <i class="fa-solid fa-lightbulb"></i> Pista
+    </button>
+    <button class="ctrl-btn" onclick="document.getElementById('helpOverlay').classList.add('show')">
+      <i class="fa-solid fa-circle-question"></i> ¿Cómo jugar?
+    </button>
+  </div>
+
+</div><!-- end #app -->
+
+<!-- WIN OVERLAY -->
+<div class="w-overlay" id="winOverlay">
+  <div class="w-card">
+    <span class="w-emoji">🌑</span>
+    <div class="w-title">¡OSCURIDAD TOTAL!</div>
+    <div class="w-sub">Todas las luces apagadas</div>
+    <div class="w-stats">
+      <div class="w-stat">
+        <div class="w-stat-val" id="winMoves">0</div>
+        <div class="w-stat-lbl">Movimientos</div>
+      </div>
+      <div class="w-stat">
+        <div class="w-stat-val" id="winSize">5×5</div>
+        <div class="w-stat-lbl">Grilla</div>
+      </div>
+      <div class="w-stat">
+        <div class="w-stat-val" id="winEfficiency">—</div>
+        <div class="w-stat-lbl">Eficiencia</div>
+      </div>
+    </div>
+    <div class="rec-banner" id="winRecBanner" style="display:none">✦ ¡NUEVO RÉCORD PERSONAL! ✦</div>
+    <div class="w-btns">
+      <button class="btn-primary" onclick="closeWin(); newPuzzle()">▶ Siguiente puzzle</button>
+      <button class="btn-secondary" onclick="closeWin(); resetPuzzle()">↩ Reintentar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="h-card">
+    <button class="h-close" onclick="document.getElementById('helpOverlay').classList.remove('show')">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <span class="h-icon">💡</span>
+    <div class="h-title">Luces Apagadas</div>
+    <div class="h-subtitle">Lights Out — el rompecabezas de lógica pura</div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Objetivo</div>
+      <div class="h-step" style="background:rgba(255,230,0,0.05);border-color:rgba(255,230,0,0.2)">
+        <div class="h-num">🎯</div>
+        <div class="h-txt">
+          <b>Apagar todas las luces</b> de la grilla. Una luz amarilla = encendida. Una celda oscura = apagada. ¡Consigue que todo quede oscuro!
+        </div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">La regla clave</div>
+      <div class="h-step" style="background:rgba(255,0,144,0.05);border-color:rgba(255,0,144,0.2)">
+        <div class="h-num">⚡</div>
+        <div class="h-txt">
+          Al tocar una celda, <b>ella y todas sus vecinas</b> (arriba, abajo, izquierda, derecha) <em>cambian de estado</em>: las encendidas se apagan y las apagadas se encienden.
+        </div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">¿Cómo se juega?</div>
+      <div class="h-steps">
+        <div class="h-step">
+          <div class="h-num">1</div>
+          <div class="h-txt">Mira la grilla e identifica qué luces están <b>encendidas</b> (amarillas).</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">2</div>
+          <div class="h-txt"><b>Toca</b> las celdas estratégicamente para apagar las luces. Cada toque afecta la celda tocada y sus vecinas directas.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">3</div>
+          <div class="h-txt">¡Intenta usar el <b>menor número de movimientos</b> posible! Ganas cuando todas las luces estén apagadas.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">4</div>
+          <div class="h-txt">Si te atascas, usa el botón <b>Pista</b> — iluminará en rosa la celda recomendada para tocar.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Ejemplo visual</div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 0">
+        <div>
+          <div style="font-size:0.72rem;color:var(--dim);letter-spacing:2px;margin-bottom:6px;text-align:center">ANTES</div>
+          <div class="demo-grid">
+            <div class="dc"></div><div class="dc on"></div><div class="dc"></div>
+            <div class="dc on"></div><div class="dc on target"></div><div class="dc on"></div>
+            <div class="dc"></div><div class="dc on"></div><div class="dc"></div>
+          </div>
+        </div>
+        <div style="font-size:1.5rem;color:var(--on)">→</div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--dim);letter-spacing:2px;margin-bottom:6px;text-align:center">TOCAS CENTRO</div>
+          <div class="demo-grid">
+            <div class="dc"></div><div class="dc"></div><div class="dc"></div>
+            <div class="dc"></div><div class="dc"></div><div class="dc"></div>
+            <div class="dc"></div><div class="dc"></div><div class="dc"></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:0.8rem;color:var(--dim);margin-top:6px">
+        Al tocar el centro (recuadro rosado), se apagan: el centro, arriba, abajo, izquierda y derecha.
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Tamaños disponibles</div>
+      <div class="size-chips">
+        <div class="sc">3×3 <span>Fácil — 9 celdas</span></div>
+        <div class="sc">4×4 <span>Normal — 16 celdas</span></div>
+        <div class="sc">5×5 <span>Difícil — 25 celdas</span></div>
+        <div class="sc">6×6 <span>Experto — 36 celdas</span></div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Consejo</div>
+      <div class="h-tip">
+        💡 <b>Estrategia:</b> empieza desde la primera fila e intenta apagar cada luz usando la fila de abajo. Este método sistemático (llamado "chase the lights") resuelve casi cualquier puzzle 5×5.
+      </div>
+    </div>
+
+    <div class="h-foot">
+      <button class="btn-primary" style="width:100%" onclick="document.getElementById('helpOverlay').classList.remove('show')">
+        ¡Entendido, a jugar!
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let N          = 5;          // grid size
+let grid       = [];         // current state (0/1)
+let initGrid   = [];         // initial state for reset
+let moves      = 0;
+let puzzleNum  = 1;
+let hintCells  = [];
+let gameWon    = false;
+
+// Records per grid size
+function recKey(n){ return `lo_record_${n}`; }
+function getRecord(n){ const v=localStorage.getItem(recKey(n)); return v?parseInt(v):null; }
+function setRecord(n,m){ localStorage.setItem(recKey(n),m); }
+
+// ─── GRID GENERATION ─────────────────────────────────────────────────────────
+// Generate a guaranteed-solvable puzzle by starting from solved state
+// and applying random moves (each move is its own inverse)
+function generatePuzzle(n, numMoves) {
+  const g = Array(n*n).fill(0);
+  const used = new Set();
+  let count = 0;
+  let attempts = 0;
+  while (count < numMoves && attempts < 500) {
+    attempts++;
+    const idx = Math.floor(Math.random() * n * n);
+    if (used.has(idx) && Math.random() < 0.7) continue;
+    toggle(g, n, idx);
+    used.add(idx);
+    count++;
+  }
+  // Make sure not already solved
+  if (g.every(v => v === 0)) return generatePuzzle(n, numMoves);
+  return g;
+}
+
+function toggle(g, n, idx) {
+  const row = Math.floor(idx / n), col = idx % n;
+  g[idx] ^= 1;
+  if (row > 0)   g[idx - n] ^= 1;
+  if (row < n-1) g[idx + n] ^= 1;
+  if (col > 0)   g[idx - 1] ^= 1;
+  if (col < n-1) g[idx + 1] ^= 1;
+}
+
+// ─── INIT / NEW / RESET ──────────────────────────────────────────────────────
+function initGame(n) {
+  N = n;
+  moves = 0;
+  gameWon = false;
+  hintCells = [];
+
+  const difficulty = { 3:6, 4:10, 5:14, 6:18 }[n] || 14;
+  grid = generatePuzzle(n, difficulty);
+  initGrid = [...grid];
+
+  buildGrid();
+  updateAll();
+
+  document.querySelectorAll('.lv-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.size) === n);
+  });
+}
+
+function newPuzzle() {
+  puzzleNum++;
+  document.getElementById('puzzleNumVal').textContent = puzzleNum;
+  initGame(N);
+}
+
+function resetPuzzle() {
+  grid = [...initGrid];
+  moves = 0;
+  gameWon = false;
+  hintCells = [];
+  clearHints();
+  updateAll();
+}
+
+// ─── BUILD DOM GRID ──────────────────────────────────────────────────────────
+function buildGrid() {
+  const container = document.getElementById('gameGrid');
+  container.innerHTML = '';
+
+  // Cell size responsive
+  const maxBoard = Math.min(window.innerWidth * 0.80, 420);
+  const cellSize = Math.floor((maxBoard - (N-1)*8 - 40) / N);
+
+  container.style.gridTemplateColumns = `repeat(${N}, ${cellSize}px)`;
+
+  for (let i = 0; i < N*N; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.style.width  = cellSize + 'px';
+    cell.style.height = cellSize + 'px';
+    cell.dataset.idx  = i;
+    cell.addEventListener('click', () => handleClick(i));
+    container.appendChild(cell);
+  }
+}
+
+function renderGrid() {
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach((c, i) => {
+    c.classList.toggle('on', grid[i] === 1);
+  });
+}
+
+// ─── CLICK ───────────────────────────────────────────────────────────────────
+function handleClick(idx) {
+  if (gameWon) return;
+  clearHints();
+
+  toggle(grid, N, idx);
+  moves++;
+
+  // Flash animation
+  const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
+  cell.classList.remove('flash-click');
+  void cell.offsetWidth;
+  cell.classList.add('flash-click');
+  setTimeout(() => cell.classList.remove('flash-click'), 220);
+
+  playClick(grid[idx]);
+  spawnParticlesAt(idx);
+
+  updateAll();
+
+  if (grid.every(v => v === 0)) {
+    setTimeout(winGame, 350);
+  }
+}
+
+// ─── UPDATE ──────────────────────────────────────────────────────────────────
+function updateAll() {
+  renderGrid();
+  updateStats();
+}
+
+function updateStats() {
+  const lit = grid.filter(v => v === 1).length;
+  const total = N * N;
+  const offPct = Math.round(((total - lit) / total) * 100);
+
+  document.getElementById('movesVal').textContent = moves;
+  document.getElementById('litVal').textContent   = lit;
+  document.getElementById('progFill').style.width = (lit / total * 100) + '%';
+  document.getElementById('progPct').textContent  = offPct + '% apagadas';
+  document.getElementById('recVal').textContent   = getRecord(N) ?? '—';
+
+  // Bump moves
+  const mv = document.getElementById('movesVal');
+  mv.classList.remove('bump'); void mv.offsetWidth; mv.classList.add('bump');
+
+  const bar = document.getElementById('statusBar');
+  if (lit === 0) {
+    bar.textContent = '🌑 ¡Todas apagadas!';
+    bar.className = 'status-bar win';
+  } else if (lit <= 2) {
+    bar.textContent = `⚡ ¡Casi! Solo ${lit} luz${lit>1?'es':''} encendida${lit>1?'s':''}`;
+    bar.className = 'status-bar playing';
+    bar.style.color = 'var(--green)';
+  } else {
+    bar.textContent = `${lit} luz${lit>1?'es':''} encendida${lit>1?'s':''}  —  apaga todas`;
+    bar.className = 'status-bar playing';
+    bar.style.color = '';
+  }
+}
+
+// ─── WIN ─────────────────────────────────────────────────────────────────────
+function winGame() {
+  gameWon = true;
+  const rec = getRecord(N);
+  const isRec = rec === null || moves < rec;
+  if (isRec) setRecord(N, moves);
+
+  // Optimal estimate (2^N - 1 is not exact for Lights Out, use min known)
+  const minEst = { 3:4, 4:6, 5:8, 6:10 }[N] || 8;
+  const eff = Math.min(100, Math.round((minEst / moves) * 100));
+
+  document.getElementById('winMoves').textContent = moves;
+  document.getElementById('winSize').textContent  = `${N}×${N}`;
+  document.getElementById('winEfficiency').textContent = eff + '%';
+  document.getElementById('winRecBanner').style.display = isRec ? 'block' : 'none';
+  document.getElementById('winOverlay').classList.add('show');
+
+  spawnWinParticles();
+  playWin();
+}
+
+function closeWin() {
+  document.getElementById('winOverlay').classList.remove('show');
+}
+
+// ─── HINT SYSTEM ─────────────────────────────────────────────────────────────
+// Gaussian elimination over GF(2) to find optimal solution
+function showHint() {
+  clearHints();
+  const solution = solveGF2(grid, N);
+  if (!solution) {
+    document.getElementById('statusBar').textContent = '🤔 Este puzzle necesita otro enfoque...';
+    return;
+  }
+  const moves = solution.map((v, i) => v === 1 ? i : -1).filter(i => i !== -1);
+  if (moves.length === 0) return;
+
+  // Highlight just the first recommended move
+  const first = moves[0];
+  hintCells = [first];
+  const cell = document.querySelector(`.cell[data-idx="${first}"]`);
+  if (cell) cell.classList.add('hint-cell');
+
+  const bar = document.getElementById('statusBar');
+  bar.textContent = `💡 Pista: toca la celda marcada en rosa`;
+  bar.className = 'status-bar hint';
+  setTimeout(clearHints, 3000);
+}
+
+function clearHints() {
+  document.querySelectorAll('.cell.hint-cell').forEach(c => c.classList.remove('hint-cell'));
+  hintCells = [];
+}
+
+// GF(2) Gaussian elimination solver
+function solveGF2(state, n) {
+  const size = n * n;
+
+  // Build the toggle matrix: A[i][j] = 1 if pressing j affects cell i
+  const A = [];
+  for (let i = 0; i < size; i++) {
+    const row = Array(size + 1).fill(0);
+    const r = Math.floor(i/n), c = i%n;
+    row[i] = 1;
+    if (r > 0)   row[i-n] = 1;
+    if (r < n-1) row[i+n] = 1;
+    if (c > 0)   row[i-1] = 1;
+    if (c < n-1) row[i+1] = 1;
+    row[size] = state[i]; // RHS = current state (we want to zero it)
+    A.push(row);
+  }
+
+  // Forward elimination
+  const pivotCol = [];
+  let row = 0;
+  for (let col = 0; col < size && row < size; col++) {
+    // Find pivot
+    let pivot = -1;
+    for (let r = row; r < size; r++) {
+      if (A[r][col] === 1) { pivot = r; break; }
+    }
+    if (pivot === -1) continue;
+    [A[row], A[pivot]] = [A[pivot], A[row]];
+    pivotCol.push({ row, col });
+    for (let r = 0; r < size; r++) {
+      if (r !== row && A[r][col] === 1) {
+        for (let j = 0; j <= size; j++) A[r][j] ^= A[row][j];
+      }
+    }
+    row++;
+  }
+
+  // Check consistency
+  for (let r = row; r < size; r++) {
+    if (A[r][size] === 1) return null; // no solution
+  }
+
+  // Back-substitute (free variables = 0)
+  const sol = Array(size).fill(0);
+  pivotCol.forEach(({ row: r, col: c }) => { sol[c] = A[r][size]; });
+  return sol;
+}
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+let actx = null;
+function getCtx() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  return actx;
+}
+
+function playClick(isOn) {
+  try {
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.frequency.value = isOn ? 660 : 220;
+    osc.type = 'sine';
+    g.gain.setValueAtTime(0.18, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.12);
+  } catch(e){}
+}
+
+function playWin() {
+  [440,550,660,770,880].forEach((f,i) => {
+    setTimeout(() => {
+      try {
+        const ctx = getCtx();
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.frequency.value = f; osc.type = 'sine';
+        g.gain.setValueAtTime(0.22, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.22);
+      } catch(e){}
+    }, i * 100);
+  });
+}
+
+// ─── PARTICLES ───────────────────────────────────────────────────────────────
+const canvas = document.getElementById('particles');
+const pctx   = canvas.getContext('2d');
+let particles = [];
+
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+function spawnParticlesAt(idx) {
+  const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
+  if (!cell) return;
+  const r = cell.getBoundingClientRect();
+  const cx = r.left + r.width/2, cy = r.top + r.height/2;
+  const col = grid[idx] === 1 ? '#ffe600' : '#00f5ff';
+  for (let i = 0; i < 10; i++) {
+    particles.push({
+      x:cx, y:cy,
+      vx:(Math.random()-0.5)*5,
+      vy:(Math.random()-1.5)*4,
+      life:1, decay:0.04+Math.random()*0.03,
+      size:1.5+Math.random()*3, color:col
+    });
+  }
+}
+
+function spawnWinParticles() {
+  const cols = ['#ffe600','#00f5ff','#39ff14','#ff0090','#ff6600'];
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x:Math.random()*innerWidth, y:-10,
+      vx:(Math.random()-0.5)*4, vy:2+Math.random()*5,
+      life:1, decay:0.007+Math.random()*0.007,
+      size:3+Math.random()*5, color:cols[i%cols.length],
+      confetti:true, rot:Math.random()*Math.PI*2, rotV:(Math.random()-0.5)*0.15
+    });
+  }
+}
+
+function animParticles() {
+  pctx.clearRect(0,0,canvas.width,canvas.height);
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+    if (p.confetti){ p.vy+=0.04; p.rot+=p.rotV; }
+    pctx.save();
+    pctx.globalAlpha = p.life;
+    pctx.translate(p.x, p.y);
+    if (p.confetti){
+      pctx.rotate(p.rot);
+      pctx.fillStyle = p.color;
+      pctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+    } else {
+      pctx.beginPath();
+      pctx.arc(0,0,p.size,0,Math.PI*2);
+      pctx.fillStyle = p.color;
+      pctx.shadowBlur = 8; pctx.shadowColor = p.color;
+      pctx.fill();
+    }
+    pctx.restore();
+  });
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// ─── LEVEL BUTTONS ───────────────────────────────────────────────────────────
+document.querySelectorAll('.lv-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const n = parseInt(btn.dataset.size);
+    puzzleNum = 1;
+    document.getElementById('puzzleNumVal').textContent = puzzleNum;
+    initGame(n);
+    document.getElementById('winOverlay').classList.remove('show');
+  });
+});
+
+window.addEventListener('resize', () => {
+  buildGrid();
+  renderGrid();
+  updateStats();
+});
+
+// ─── START ───────────────────────────────────────────────────────────────────
+initGame(5);
+</script>
+</body>
+</html>

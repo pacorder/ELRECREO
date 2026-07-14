@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>TRON JUMP • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000810;--c1:#00f5ff;--c2:#ff0090;--cy:#ffe600;--cg:#39ff14;--co:#ff6600;--cp:#aa00ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;user-select:none;touch-action:none;font-family:'Orbitron',monospace;}
+#wrap{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+canvas{display:block;position:relative;}
+
+/* overlays */
+.ov{position:absolute;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;background:rgba(0,8,16,.94);backdrop-filter:blur(14px);overflow-y:auto;}
+.ov.show{display:flex;animation:fi .4s ease;}
+@keyframes fi{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+
+/* start */
+.logo{font-size:clamp(2.2rem,8vw,4.5rem);font-weight:900;letter-spacing:8px;background:linear-gradient(90deg,var(--c1),#fff,var(--c2));background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:ls 3s linear infinite;text-align:center;margin-bottom:4px;}
+@keyframes ls{to{background-position:200% 0}}
+.logo-sub{font-size:.58rem;letter-spacing:6px;color:rgba(255,255,255,.22);margin-bottom:20px;text-transform:uppercase;}
+.hero-icon{font-size:3.8rem;margin-bottom:16px;animation:hf 1.8s ease-in-out infinite alternate;filter:drop-shadow(0 0 18px rgba(0,245,255,.6));}
+@keyframes hf{from{transform:translateY(0)}to{transform:translateY(-14px)}}
+
+.best-row{font-size:.7rem;letter-spacing:3px;color:var(--cy);margin-bottom:18px;text-shadow:0 0 10px rgba(255,230,0,.4);}
+.play-btn{font-size:.88rem;font-weight:900;letter-spacing:6px;padding:16px 58px;border-radius:4px;border:none;cursor:pointer;background:transparent;color:var(--c1);box-shadow:inset 0 0 0 2px var(--c1),0 0 26px rgba(0,245,255,.3);transition:all .25s;animation:pp 2s ease-in-out infinite;margin-bottom:14px;text-transform:uppercase;position:relative;overflow:hidden;}
+.play-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,245,255,.1),transparent);opacity:0;transition:opacity .3s;}
+.play-btn:hover{background:rgba(0,245,255,.08);}
+.play-btn:hover::before{opacity:1;}
+@keyframes pp{0%,100%{box-shadow:inset 0 0 0 2px var(--c1),0 0 26px rgba(0,245,255,.3)}50%{box-shadow:inset 0 0 0 2px var(--c1),0 0 48px rgba(0,245,255,.6),0 0 0 8px rgba(0,245,255,.06)}}
+
+.help-link{font-size:.58rem;letter-spacing:3px;color:rgba(255,255,255,.25);cursor:pointer;padding:8px 16px;border:1px solid rgba(255,255,255,.08);border-radius:6px;transition:all .2s;background:none;text-transform:uppercase;margin-top:4px;pointer-events:auto;}
+.help-link:hover{color:var(--c1);border-color:rgba(0,245,255,.3);}
+
+/* HUD */
+#hud{position:absolute;top:0;left:0;right:0;z-index:10;display:none;pointer-events:none;}
+#hud.show{display:block;}
+.hud-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(to bottom,rgba(0,8,16,.88),transparent);}
+.hud-score{font-size:1.2rem;font-weight:900;color:var(--cy);text-shadow:0 0 10px rgba(255,230,0,.5);}
+.hud-height{font-size:.6rem;letter-spacing:3px;color:rgba(255,255,255,.28);}
+.hud-lives{display:flex;gap:5px;}
+.hud-life{width:13px;height:13px;border-radius:2px;background:var(--c1);box-shadow:0 0 8px var(--c1);transition:all .3s;}
+.hud-life.lost{background:rgba(255,255,255,.1);box-shadow:none;}
+
+/* zone banner */
+#zoneBanner{position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:11;font-size:.58rem;letter-spacing:4px;text-transform:uppercase;padding:5px 16px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .5s;white-space:nowrap;}
+#zoneBanner.show{opacity:1;}
+
+/* countdown */
+#cdOv{position:absolute;inset:0;z-index:25;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,8,16,.65);}
+#cdOv.show{display:flex;}
+#cdNum{font-size:clamp(5rem,18vw,11rem);font-weight:900;color:var(--c1);text-shadow:0 0 60px var(--c1);animation:cdA .82s ease forwards;}
+@keyframes cdA{0%{transform:scale(1.8);opacity:0}25%{transform:scale(1);opacity:1}75%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}
+
+/* game over */
+.oe{font-size:3.2rem;margin-bottom:10px;animation:ob .5s cubic-bezier(.23,1,.32,1);}
+@keyframes ob{from{transform:scale(0) rotate(-15deg)}to{transform:scale(1)}}
+.ot{font-size:clamp(1.6rem,6vw,2.6rem);font-weight:900;background:linear-gradient(90deg,var(--c2),var(--co));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;text-align:center;}
+.os{font-size:.82rem;color:rgba(255,255,255,.3);margin-bottom:18px;text-align:center;}
+.sbig{font-size:2.8rem;font-weight:900;color:var(--cy);text-shadow:0 0 22px rgba(255,230,0,.6);margin-bottom:4px;}
+.slbl{font-size:.6rem;letter-spacing:3px;color:rgba(255,255,255,.26);margin-bottom:18px;}
+.ovst{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;justify-content:center;}
+.sv{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 16px;text-align:center;min-width:80px;}
+.sv-v{font-size:1.1rem;color:var(--c1);display:block;} .sv-l{font-size:.56rem;letter-spacing:2px;color:rgba(255,255,255,.26);}
+.nrec{background:rgba(255,230,0,.08);border:1px solid rgba(255,230,0,.28);border-radius:8px;padding:7px 18px;margin-bottom:14px;font-size:.58rem;letter-spacing:3px;color:var(--cy);animation:rp 1s ease-in-out infinite;}
+@keyframes rp{0%,100%{opacity:1}50%{opacity:.4}}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.bb{font-size:.7rem;font-weight:900;letter-spacing:3px;padding:12px 22px;border-radius:6px;cursor:pointer;transition:all .2s;}
+.bb.p{background:linear-gradient(135deg,var(--c1),var(--cp));color:#fff;border:none;box-shadow:0 0 18px rgba(0,245,255,.3);}
+.bb.p:hover{transform:translateY(-2px);}
+.bb.s{background:transparent;color:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.1);}
+.bb.s:hover{color:#fff;border-color:rgba(0,245,255,.3);}
+
+/* ══ HELP MODAL ══ */
+.help-ov{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,8,16,.96);backdrop-filter:blur(16px);}
+.help-ov.show{display:flex;animation:fi .3s ease;}
+.hcard{background:linear-gradient(135deg,rgba(0,245,255,.06),rgba(255,0,144,.04));border:1px solid rgba(0,245,255,.2);border-radius:20px;padding:32px 36px;max-width:500px;width:100%;position:relative;max-height:88vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(0,245,255,.2) transparent;}
+.hclose{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:pointer;color:rgba(255,255,255,.3);display:grid;place-items:center;font-size:.82rem;transition:all .2s;}
+.hclose:hover{color:#fff;border-color:rgba(0,245,255,.4);}
+.htitle{font-size:.88rem;font-weight:900;letter-spacing:5px;text-align:center;background:linear-gradient(90deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.hsub{text-align:center;font-size:.56rem;letter-spacing:3px;color:rgba(255,255,255,.22);margin-bottom:20px;text-transform:uppercase;}
+.hsec{margin-bottom:16px;}
+.hst{font-size:.56rem;letter-spacing:4px;text-transform:uppercase;color:var(--c1);margin-bottom:9px;display:flex;align-items:center;gap:8px;}
+.hst::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(0,245,255,.3),transparent);}
+.hsteps{display:flex;flex-direction:column;gap:7px;}
+.hstep{display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:9px 12px;}
+.hn{font-size:.78rem;font-weight:900;color:var(--c1);min-width:20px;text-align:center;}
+.htx{font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;}
+.htx b{color:var(--cy);}
+.htx em{color:var(--c1);font-style:normal;font-weight:700;}
+.htip{background:rgba(255,230,0,.05);border:1px solid rgba(255,230,0,.18);border-radius:9px;padding:10px 13px;font-size:.8rem;color:rgba(255,255,255,.72);line-height:1.5;}
+.htip b{color:var(--cy);}
+.hfoot{margin-top:18px;}
+.hfbtn{width:100%;padding:12px;border-radius:6px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;font-family:'Orbitron',monospace;font-size:.72rem;font-weight:900;letter-spacing:4px;transition:all .2s;text-transform:uppercase;}
+.hfbtn:hover{transform:translateY(-2px);box-shadow:0 0 18px rgba(0,245,255,.3);}
+
+/* ctrl swatch table */
+.ctrl-tbl{width:100%;border-collapse:collapse;margin-top:4px;}
+.ctrl-tbl th{font-size:.52rem;letter-spacing:3px;color:rgba(255,255,255,.28);padding:5px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);}
+.ctrl-tbl td{font-size:.78rem;color:rgba(255,255,255,.68);padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.ctrl-tbl td:first-child{color:var(--c1);font-weight:700;width:38%;}
+.ctrl-tbl tr:last-child td{border-bottom:none;}
+
+/* mobile */
+#mCtrl{display:none !important;}
+.mc{width:96px;height:96px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;cursor:pointer;-webkit-tap-highlight-color:transparent;border:1px solid rgba(0,245,255,.3);background:rgba(0,245,255,.08);transition:all .1s;}
+.mc:active{background:rgba(0,245,255,.28);border-color:rgba(0,245,255,.7);transform:scale(.9);}
+.mc-lbl{font-size:.44rem;letter-spacing:2px;color:rgba(255,255,255,.22);display:block;text-align:center;margin-top:5px;}
+.mc-wrap{display:flex;flex-direction:column;align-items:center;}
+</style>
+</head>
+<body>
+<div id="wrap">
+<canvas id="gc"></canvas>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-bar">
+    <div class="hud-score" id="hScore">0</div>
+    <div class="hud-height" id="hHeight">0 m</div>
+    <div class="hud-lives" id="hLives"></div>
+  </div>
+</div>
+<div id="zoneBanner"></div>
+<div id="cdOv"><div id="cdNum">3</div></div>
+
+<!-- START -->
+<div class="ov show" id="scStart">
+  <div class="hero-icon">⬡</div>
+  <div class="logo">TRON JUMP</div>
+  <div class="logo-sub">Salta · Asciende · Escapa</div>
+  <div class="best-row" id="startBest">🏆 Récord: 0 m</div>
+  <button class="play-btn" onclick="startGame()">INICIAR</button>
+  <button class="help-link" onclick="showHelp()">❓ ¿Cómo jugar?</button>
+</div>
+
+<!-- GAME OVER -->
+<div class="ov" id="scOver">
+  <div class="oe" id="ovEm">💀</div>
+  <div class="ot">SISTEMA CAÍDO</div>
+  <div class="os" id="ovSub">El corredor perdió conexión</div>
+  <div class="sbig" id="ovScore">0</div>
+  <div class="slbl">METROS</div>
+  <div class="ovst" id="ovSt"></div>
+  <div class="nrec" id="ovRec" style="display:none">⚡ ¡NUEVO RÉCORD!</div>
+  <div class="btns">
+    <button class="bb p" onclick="startGame()">▶ Reiniciar</button>
+    <button class="bb s" onclick="goMenu()">🏠 Inicio</button>
+  </div>
+  <button class="help-link" onclick="showHelp()" style="margin-top:12px">❓ ¿Cómo jugar?</button>
+</div>
+
+<!-- HELP MODAL -->
+<div class="help-ov" id="helpOv" onclick="if(event.target===this)hideHelp()">
+  <div class="hcard">
+    <button class="hclose" onclick="hideHelp()">✕</button>
+    <div class="htitle">TRON JUMP</div>
+    <div class="hsub">Manual del corredor digital</div>
+
+    <div class="hsec">
+      <div class="hst">Objetivo</div>
+      <div class="hstep" style="background:rgba(0,245,255,.05);border-color:rgba(0,245,255,.2)">
+        <div class="hn">🎯</div>
+        <div class="htx">Salta de plataforma en plataforma para <b>subir lo más alto posible</b>. Si caes por debajo de la pantalla, pierdes una vida. El juego termina al quedarte sin vidas.</div>
+      </div>
+    </div>
+
+    <div class="hsec">
+      <div class="hst">Controles</div>
+      <table class="ctrl-tbl">
+        <tr><th>Acción</th><th>Móvil</th><th>PC / Teclado</th></tr>
+        <tr><td>Mover izquierda</td><td>Inclina el teléfono a la izquierda</td><td><em>← / A</em></td></tr>
+        <tr><td>Mover derecha</td><td>Inclina el teléfono a la derecha</td><td><em>→ / D</em></td></tr>
+        <tr><td>El salto es <em>automático</em> al tocar una plataforma</td><td colspan="2">No se necesita ningún botón extra</td></tr>
+      </table>
+    </div>
+
+    <div class="hsec">
+      <div class="hst">Plataformas y objetos</div>
+      <div class="hsteps">
+        <div class="hstep">
+          <div class="hn" style="color:var(--cg)">▬</div>
+          <div class="htx"><b>Plataforma normal</b> — Siempre estable. Salta encima para rebotar.</div>
+        </div>
+        <div class="hstep">
+          <div class="hn" style="color:var(--cg)">◀▶</div>
+          <div class="htx"><b>Plataforma móvil</b> — Aparece en la Zona 2. Se mueve de lado a lado. ¡Calcula bien el salto!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hsec">
+      <div class="hst">Zonas</div>
+      <div class="hsteps">
+        <div class="hstep"><div class="hn" style="color:var(--c1)">1</div><div class="htx"><b style="color:var(--c1)">Zona Cero</b> — Ciudad digital. Plataformas estables y anchas.</div></div>
+        <div class="hstep"><div class="hn" style="color:var(--cg)">2</div><div class="htx"><b style="color:var(--cg)">Núcleo</b> — Desde 500m. Algunas plataformas se mueven. ¡Más difícil!</div></div>
+      </div>
+    </div>
+
+    <div class="hsec">
+      <div class="hst">Consejo</div>
+      <div class="htip">💡 <b>Inclina el teléfono</b> para moverte — igual que Whirlybird. En PC usa las flechas o WASD. El personaje hace wrap: si sales por la derecha apareces por la izquierda. <b>En la Zona 2</b> las plataformas se mueven — anticipa su posición antes de saltar.</div>
+    </div>
+
+    <div class="hfoot">
+      <button class="hfbtn" onclick="hideHelp()">¡Entendido, a saltar!</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE CONTROLS -->
+<div id="mCtrl">
+  <div class="mc-wrap"><div class="mc" id="mL">◀</div><span class="mc-lbl">IZQUIERDA</span></div>
+  <div class="mc-wrap"><div class="mc" id="mR">▶</div><span class="mc-lbl">DERECHA</span></div>
+</div>
+</div><!-- #wrap -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// CANVAS
+// ══════════════════════════════════════════════════════
+const canvas = document.getElementById('gc');
+const ctx    = canvas.getContext('2d');
+let W, H, OX;   // OX = left offset of game area
+function resize(){
+  const maxW = Math.min(window.innerWidth, 480);
+  W = canvas.width  = maxW;
+  H = canvas.height = window.innerHeight;
+  OX = (window.innerWidth - W) / 2;
+  canvas.style.position = 'absolute';
+  canvas.style.left = OX + 'px';
+  canvas.style.top  = '0px';
+  // Keep overlays and mobile controls aligned to game area
+  document.getElementById('hud').style.cssText    = `left:${OX}px;right:auto;width:${W}px;`;
+  document.getElementById('zoneBanner').style.left = (OX + W/2) + 'px';
+  document.getElementById('mCtrl').style.cssText  = `left:${OX}px;right:auto;width:${W}px;`;
+  // All overlays
+  document.querySelectorAll('.ov').forEach(el => {
+    el.style.left  = OX + 'px';
+    el.style.right = 'auto';
+    el.style.width = W + 'px';
+  });
+  document.getElementById('helpOv').style.cssText = `left:${OX}px;right:auto;width:${W}px;`;
+  document.getElementById('cdOv').style.cssText   = `left:${OX}px;right:auto;width:${W}px;`;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ══════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════
+const GRAV       = 0.38;
+const JUMP_V     = -10;      // pixels/frame (negative = up screen)
+const MOVE_SPD   = 4.5;
+const PLAT_H     = 12;
+const P_W        = 34;
+const P_H        = 38;
+const PLAT_ROWS  = 5;        // fewer rows = more spacing between platforms
+const MAX_LIVES  = 3;
+const INV_F      = 90;
+
+const ZONES = [
+  { at:0,   label:'ZONA CERO', color:'#00f5ff', sky0:'#000810', sky1:'#001c38' },
+  { at:500, label:'NÚCLEO',    color:'#39ff14', sky0:'#001004', sky1:'#002008' },
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let px, py, pvx, pvy;
+let inv;
+let platforms = [];
+let camY;
+let score, lives, running, raf, lastT;
+let currentZone = 0;
+let lastPlatId  = -1;
+let parts = [];
+let best = parseInt(localStorage.getItem('tron_jump_best') || '0');
+let keys = {};
+let bgBuildings = [];
+let propellerAngle = 0;   // spinning propeller
+
+// ══════════════════════════════════════════════════════
+// INPUT
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// INPUT — Tilt primary, keyboard fallback
+// ══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => keys[e.key] = true);
+document.addEventListener('keyup',   e => keys[e.key] = false);
+
+let tiltX = 0;   // -1 to 1 from device tilt
+let tiltAvail = false;
+
+window.addEventListener('deviceorientation', e => {
+  if (e.gamma !== null) {
+    tiltAvail = true;
+    // gamma = left/right tilt in degrees (-90 to 90)
+    tiltX = Math.max(-1, Math.min(1, e.gamma / 25));
+  }
+});
+
+// Mobile tap zones as fallback (half-screen left/right)
+let tapL = false, tapR = false;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  Array.from(e.touches).forEach(t => {
+    if (t.clientX < W / 2) tapL = true;
+    else tapR = true;
+  });
+}, {passive:false});
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  tapL = false; tapR = false;
+  Array.from(e.touches).forEach(t => {
+    if (t.clientX < W / 2) tapL = true;
+    else tapR = true;
+  });
+}, {passive:false});
+canvas.addEventListener('touchcancel', () => { tapL = false; tapR = false; });
+
+function getHorizInput() {
+  // Tilt if available, otherwise keyboard or tap
+  if (tiltAvail) return tiltX;
+  if (keys['ArrowLeft']  || keys['a'] || keys['A'] || tapL) return -1;
+  if (keys['ArrowRight'] || keys['d'] || keys['D'] || tapR) return  1;
+  return 0;
+}
+
+// ══════════════════════════════════════════════════════
+// PLATFORM GENERATION
+// ══════════════════════════════════════════════════════
+// All coordinates are in SCREEN PIXELS (y=0 top, y=H bottom).
+// "world" = camera-adjusted: worldY = screenY + camY
+// camY increases as player goes up.
+
+function platWidth(worldY) {
+  // Double size, narrower as you go higher — min 90px
+  const h = worldY;
+  return Math.max(90, 180 - h / 30);
+}
+
+function makePlat(worldY) {
+  const w = platWidth(worldY);
+  const inZone2 = worldY >= 500;
+  return {
+    wx:     10 + Math.random() * (W - w - 20),
+    wy:     worldY,
+    w,
+    spikes: false,
+    moving: inZone2 && Math.random() < 0.4,
+    vx:     0,   // set below
+    dir:    Math.random() > 0.5 ? 1 : -1,
+  };
+}
+
+const GAP = 95;   // fixed vertical gap between platforms in world pixels
+
+function initPlatforms() {
+  platforms = [];
+  platforms.push({ wx: W/2 - 90, wy: 0, w: 180, spikes: false });
+  for (let i = 1; i <= 14; i++) {
+    platforms.push(makePlat(i * GAP));
+  }
+}
+
+function ensurePlatforms() {
+  // Keep exactly 14 platforms ahead of the player at all times
+  const highest = platforms.reduce((a,b) => b.wy > a.wy ? b : a).wy;
+  const playerWorldY = toWorld(py);
+  // Generate until we have 14 platforms above the player
+  let y = highest;
+  while (y < playerWorldY + GAP * 14) {
+    y += GAP * (0.85 + Math.random() * 0.3);
+    platforms.push(makePlat(y));
+  }
+  // Remove only platforms well below the screen
+  platforms = platforms.filter(p => toScreen(p.wy) < H + 200);
+}
+
+// ══════════════════════════════════════════════════════
+// COORDINATE SYSTEM
+// ══════════════════════════════════════════════════════
+// World Y: 0 = starting level, increases UPWARD.
+// camY: the world-Y shown at the BOTTOM of the screen.
+// screenY(wy) = H - (wy - camY)  =>  bottom=H when wy=camY, top=0 when wy=camY+H
+
+function toScreen(wy) { return H - (wy - camY); }
+function toWorld(sy)  { return camY + (H - sy);  }
+
+// ══════════════════════════════════════════════════════
+// BACKGROUND
+// ══════════════════════════════════════════════════════
+function buildBuildings() {
+  bgBuildings = [];
+  for (let i=0;i<24;i++) {
+    bgBuildings.push({
+      x:  Math.random() * W,
+      w:  30 + Math.random() * 90,
+      wh: 80 + Math.random() * 350,
+      wy: Math.random() * 6000,
+      layer: Math.floor(Math.random()*3),
+    });
+  }
+}
+buildBuildings();
+
+// ══════════════════════════════════════════════════════
+// GAME START
+// ══════════════════════════════════════════════════════
+function startGame() {
+  hide('scStart'); hide('scOver');
+  show('hud');
+  score = 0; lives = MAX_LIVES; currentZone = 0;
+  parts = []; inv = 0; lastPlatId = -1;
+  camY = 0;
+  initPlatforms();
+  // Player sits on starting platform
+  px  = W/2 - P_W/2;
+  py  = toScreen(0) - P_H;
+  pvx = 0;
+  pvy = JUMP_V;
+  running = true;
+  buildLives(); updHUD();
+  countdown(3, () => {
+    lastT = performance.now();
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(loop);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// COUNTDOWN
+// ══════════════════════════════════════════════════════
+function countdown(n, cb) {
+  const ov=document.getElementById('cdOv'), num=document.getElementById('cdNum');
+  ov.classList.add('show');
+  let i=n;
+  const step=()=>{
+    if(i<=0){ ov.classList.remove('show'); cb(); return; }
+    num.textContent=i===1?'¡YA!':i;
+    num.style.color=i===1?'var(--c2)':'var(--c1)';
+    num.style.textShadow=`0 0 60px ${i===1?'var(--c2)':'var(--c1)'}`;
+    num.style.animation='none'; void num.offsetWidth;
+    num.style.animation='cdA .82s ease forwards';
+    tone(i===1?880:440,'sine',.1,.12);
+    i--; setTimeout(step,840);
+  };
+  step();
+}
+
+// ══════════════════════════════════════════════════════
+// GAME LOOP
+// ══════════════════════════════════════════════════════
+function loop(ts) {
+  const dt = Math.min((ts - lastT) / 16.67, 2.5);
+  lastT = ts;
+  if (running) { update(dt); render(); raf = requestAnimationFrame(loop); }
+}
+
+// ══════════════════════════════════════════════════════
+// UPDATE
+// ══════════════════════════════════════════════════════
+function update(dt) {
+  // ── Propeller ──
+  propellerAngle += 0.18;
+
+  // ── Horizontal — tilt / keyboard / tap ──
+  const hInput = getHorizInput();
+  pvx = hInput * MOVE_SPD;
+  px += pvx;
+  if (px + P_W < 0) px = W;
+  if (px > W)       px = -P_W;
+
+  // ── Gravity ──
+  pvy += GRAV;
+  py  += pvy;
+
+  // ── Camera: follow player up smoothly, never down ──
+  const playerWorldY = toWorld(py);
+  const camTarget    = playerWorldY - H * 0.45;
+  if (camTarget > camY) {
+    // Move camera at most 8px per frame to avoid teleporting platforms
+    camY = Math.min(camY + 8, camTarget);
+    const h = Math.floor(playerWorldY);
+    if (h > score) { score = h; updHUD(); checkZone(); }
+  }
+
+  // ── Move platforms (zone 2) ──
+  platforms.forEach(p => {
+    if (!p.moving) return;
+    p.wx += 1.8 * p.dir;
+    if (p.wx <= 10)          { p.wx = 10;          p.dir = 1;  }
+    if (p.wx + p.w >= W-10)  { p.wx = W-10-p.w;   p.dir = -1; }
+  });
+
+  // ── Platform collision ──
+  if (pvy > 0) {
+    const foot = py + P_H;
+    for (let i = 0; i < platforms.length; i++) {
+      const p   = platforms[i];
+      const pSY = toScreen(p.wy);
+      if (i === lastPlatId) continue;
+      if (
+        foot  >= pSY &&
+        foot  <= pSY + PLAT_H + Math.abs(pvy) + 2 &&
+        px + P_W > p.wx + 4 &&
+        px       < p.wx + p.w - 4
+      ) {
+        pvy = JUMP_V;
+        py  = pSY - P_H;
+        lastPlatId = i;
+        spawnFx(px + P_W/2, pSY, zoneColor(), 8);
+        tone(440, 'square', .06, .07);
+        break;
+      }
+    }
+  } else {
+    lastPlatId = -1;
+  }
+
+  if (inv > 0) inv -= 1;
+  if (py > H + 60) loseLife();
+
+  ensurePlatforms();
+  updateParts(dt);
+}
+
+function loseLife() {
+  lives--;
+  buildLives();
+  spawnFx(px+P_W/2, H*0.8, '#ff0090', 18);
+  tone(180,'sawtooth',.2,.35);
+  if (lives <= 0) {
+    running = false;
+    cancelAnimationFrame(raf);
+    setTimeout(endGame, 500);
+    return;
+  }
+  // Respawn on nearest visible platform
+  const visible = platforms.filter(p => {
+    const sy = toScreen(p.wy);
+    return sy > H*0.1 && sy < H*0.75;
+  });
+  if (visible.length) {
+    const p = visible.reduce((a,b) => toScreen(a.wy) < toScreen(b.wy) ? a : b);
+    const pSY = toScreen(p.wy);
+    py  = pSY - P_H;
+    px  = p.wx + p.w/2 - P_W/2;
+    pvy = JUMP_V;
+  } else {
+    py  = H * 0.5;
+    pvy = JUMP_V;
+  }
+  inv = INV_F;
+  lastPlatId = -1;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function render() {
+  ctx.clearRect(0,0,W,H);
+  drawSky();
+  drawGrid();
+  drawBuildings();
+  drawPlatforms();
+  drawPlayer();
+  drawParticles();
+}
+
+function zoneColor() {
+  return (ZONES[currentZone] || ZONES[ZONES.length-1]).color;
+}
+
+function drawSky() {
+  const z = ZONES[currentZone] || ZONES[ZONES.length-1];
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, z.sky0); g.addColorStop(1, z.sky1);
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+}
+
+function drawGrid() {
+  const col = zoneColor();
+  const sp  = 55;
+  ctx.strokeStyle = hexA(col, 0.04); ctx.lineWidth = 1;
+  // Horizontal lines scrolling with camera
+  const off = ((camY * 0.4) % sp);
+  for (let y = off % sp; y < H; y += sp) {
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+  for (let x = 0; x < W; x += sp) {
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+  }
+}
+
+function drawBuildings() {
+  const z = ZONES[currentZone] || ZONES[ZONES.length-1];
+  bgBuildings.forEach(b => {
+    const par = [0.1, 0.2, 0.35][b.layer];
+    const top = H - (b.wy - camY * par) % (H * 4);
+    const al  = [0.07, 0.12, 0.18][b.layer];
+    ctx.fillStyle = hexA('#000820', al + 0.15);
+    ctx.fillRect(b.x, top - b.wh, b.w, b.wh);
+    ctx.strokeStyle = hexA(z.color, al * 0.7);
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 3; ctx.shadowColor = z.color;
+    ctx.strokeRect(b.x, top - b.wh, b.w, b.wh);
+    ctx.shadowBlur = 0;
+    // windows
+    const ws=4, wg=9;
+    for(let wy=top-b.wh+wg;wy<top-wg;wy+=wg)
+      for(let wx=b.x+wg;wx<b.x+b.w-wg;wx+=wg)
+        if((Math.round(wx*7+wy*3))%4!==0){
+          ctx.fillStyle=hexA(z.color,.3);
+          ctx.fillRect(wx,wy,ws,ws);
+        }
+  });
+}
+
+function drawPlatforms() {
+  const col = zoneColor();
+  platforms.forEach(p => {
+    const sy = toScreen(p.wy);
+    if (sy < -20 || sy > H + 20) return;
+
+    // Glow
+    ctx.shadowBlur = 12; ctx.shadowColor = col;
+
+    // Gradient body
+    const g = ctx.createLinearGradient(p.wx, sy, p.wx+p.w, sy);
+    g.addColorStop(0,   col + 'aa');
+    g.addColorStop(0.5, '#ffffff');
+    g.addColorStop(1,   col + 'aa');
+    ctx.fillStyle = g;
+    rr(p.wx, sy, p.w, PLAT_H, 5);
+
+    // Top shine
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    rr(p.wx+4, sy+1, p.w-8, 3, 2);
+
+    // Under-glow strip
+    ctx.fillStyle = hexA(col, 0.3);
+    ctx.fillRect(p.wx, sy + PLAT_H, p.w, 3);
+
+    // Moving indicator — small arrows
+    if (p.moving) {
+      ctx.fillStyle = hexA(col, 0.55);
+      ctx.font = '9px Orbitron';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(p.dir > 0 ? '▶' : '◀', p.wx + p.w/2, sy - 7);
+    }
+  });
+}
+
+function drawPlayer() {
+  if (inv > 0 && Math.floor(inv / 7) % 2 === 0) return;
+
+  const col = zoneColor();
+  const cx  = px + P_W/2;
+  const cy  = py + P_H/2;
+  const lean = pvx * 0.04;   // lean in direction of movement
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(lean);
+
+  // ── Body ──
+  ctx.shadowBlur = 16; ctx.shadowColor = col;
+  const bodyGrad = ctx.createLinearGradient(-P_W*.4, -P_H*.2, P_W*.4, P_H*.4);
+  bodyGrad.addColorStop(0, '#ffffff');
+  bodyGrad.addColorStop(0.5, col);
+  bodyGrad.addColorStop(1, col + '88');
+  ctx.fillStyle = bodyGrad;
+  // Rounded body
+  ctx.beginPath();
+  ctx.ellipse(0, P_H*0.12, P_W*0.4, P_H*0.32, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // ── Eyes ──
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#000820';
+  ctx.beginPath(); ctx.ellipse(-P_W*.12, P_H*0.02, P_W*.09, P_H*.1, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( P_W*.12, P_H*0.02, P_W*.09, P_H*.1, 0, 0, Math.PI*2); ctx.fill();
+  // Eye shine
+  ctx.fillStyle = col;
+  ctx.shadowBlur = 6; ctx.shadowColor = col;
+  ctx.beginPath(); ctx.ellipse(-P_W*.12, P_H*0.02, P_W*.05, P_H*.06, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( P_W*.12, P_H*0.02, P_W*.05, P_H*.06, 0, 0, Math.PI*2); ctx.fill();
+
+  // ── Mouth (smile) ──
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#000820'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(0, P_H*0.14, P_W*0.12, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+
+  // ── Legs ──
+  ctx.fillStyle = col;
+  ctx.shadowBlur = 8; ctx.shadowColor = col;
+  ctx.beginPath(); ctx.ellipse(-P_W*.16, P_H*.42, P_W*.1, P_H*.12, -0.2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( P_W*.16, P_H*.42, P_W*.1, P_H*.12,  0.2, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // ── Propeller hat ──
+  const hatY = -P_H * 0.35;
+  // Hat base
+  ctx.fillStyle = col;
+  ctx.shadowBlur = 10; ctx.shadowColor = col;
+  ctx.beginPath();
+  ctx.ellipse(0, hatY, P_W*.28, P_H*.07, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Hat stem
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-2, hatY - P_H*.14, 4, P_H*.14);
+  ctx.shadowBlur = 0;
+
+  // ── Spinning blades ──
+  ctx.save();
+  ctx.translate(0, hatY - P_H*.14);
+  ctx.rotate(propellerAngle);
+  // 3 blades
+  for (let b = 0; b < 3; b++) {
+    ctx.rotate(Math.PI * 2 / 3);
+    const bladeGrad = ctx.createLinearGradient(0, 0, P_W*.55, 0);
+    bladeGrad.addColorStop(0, col);
+    bladeGrad.addColorStop(1, col + '33');
+    ctx.fillStyle = bladeGrad;
+    ctx.shadowBlur = 8; ctx.shadowColor = col;
+    ctx.beginPath();
+    ctx.ellipse(P_W*.28, 0, P_W*.28, P_H*.065, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  // Center hub
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════════════════
+function spawnFx(x, y, col, n) {
+  for (let i=0;i<n;i++) {
+    const a = Math.random()*Math.PI*2;
+    const sp= 1.5+Math.random()*3.5;
+    parts.push({x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-2, life:1, dec:.05+Math.random()*.05, sz:1.5+Math.random()*3, col});
+  }
+}
+function updateParts(dt) {
+  parts = parts.filter(p=>p.life>0);
+  parts.forEach(p=>{ p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=.1*dt; p.life-=p.dec*dt; });
+}
+function drawParticles() {
+  parts.forEach(p=>{
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.col; ctx.shadowBlur=6; ctx.shadowColor=p.col;
+    ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(0,p.sz),0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+  });
+  ctx.globalAlpha=1;
+}
+
+// ══════════════════════════════════════════════════════
+// ZONES
+// ══════════════════════════════════════════════════════
+function checkZone() {
+  for (let i=ZONES.length-1;i>=0;i--) {
+    if (score >= ZONES[i].at && i !== currentZone) {
+      currentZone = i;
+      const z = ZONES[i];
+      const el = document.getElementById('zoneBanner');
+      el.textContent = `// ${z.label} //`;
+      el.style.color = z.color;
+      el.style.background = hexA(z.color, 0.12);
+      el.style.border = `1px solid ${hexA(z.color, 0.35)}`;
+      el.classList.add('show');
+      tone(660,'sine',.1,.2);
+      setTimeout(()=>el.classList.remove('show'), 2600);
+      break;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HUD
+// ══════════════════════════════════════════════════════
+function updHUD() {
+  document.getElementById('hScore').textContent  = score;
+  document.getElementById('hHeight').textContent = score + ' m';
+}
+function buildLives() {
+  const el = document.getElementById('hLives');
+  el.innerHTML = '';
+  for (let i=0;i<MAX_LIVES;i++) {
+    const d = document.createElement('div');
+    d.className = 'hud-life' + (i>=lives?' lost':'');
+    el.appendChild(d);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// END / MENU
+// ══════════════════════════════════════════════════════
+function endGame() {
+  running = false; cancelAnimationFrame(raf);
+  const isRec = score > best;
+  if (isRec){ best=score; localStorage.setItem('tron_jump_best',best); }
+  hide('hud');
+  document.getElementById('ovEm').textContent   = score>1000?'🏆':score>400?'⚡':'💀';
+  document.getElementById('ovScore').textContent= score;
+  document.getElementById('ovSub').textContent  = score>1000?'¡Alcanzaste el vacío digital!':score>400?'¡Buen vuelo, corredor!':'El corredor perdió conexión';
+  const z = ZONES[currentZone]||ZONES[ZONES.length-1];
+  document.getElementById('ovSt').innerHTML=`
+    <div class="sv"><span class="sv-v">${score}m</span><span class="sv-l">Altura</span></div>
+    <div class="sv"><span class="sv-v" style="color:${z.color}">${z.label}</span><span class="sv-l">Zona</span></div>
+    <div class="sv"><span class="sv-v">${best}m</span><span class="sv-l">Récord</span></div>`;
+  document.getElementById('ovRec').style.display = isRec?'block':'none';
+  show('scOver');
+}
+
+function goMenu() {
+  hide('scOver'); hide('hud'); running=false; cancelAnimationFrame(raf);
+  document.getElementById('startBest').textContent = `🏆 Récord: ${best} m`;
+  show('scStart');
+}
+
+// ══════════════════════════════════════════════════════
+// HELP
+// ══════════════════════════════════════════════════════
+function showHelp(){ document.getElementById('helpOv').classList.add('show'); }
+function hideHelp(){ document.getElementById('helpOv').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();ctx.fill();}
+function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+
+// ══════════════════════════════════════════════════════
+// AUDIO
+// ══════════════════════════════════════════════════════
+let ac=null;
+function tone(f,t='sine',v=.1,d=.1){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;o.type=t;g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+
+// ══════════════════════════════════════════════════════
+// SHOW / HIDE
+// ══════════════════════════════════════════════════════
+function show(id){document.getElementById(id).classList.add('show');}
+function hide(id){document.getElementById(id).classList.remove('show');}
+
+// ══════════════════════════════════════════════════════
+// IDLE BG
+// ══════════════════════════════════════════════════════
+(function idle(ts){
+  if(running) return;
+  requestAnimationFrame(idle);
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#000810');g.addColorStop(1,'#001830');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,180,255,.04)';ctx.lineWidth=1;
+  const sp=55;
+  for(let y=(ts/25)%sp;y<H;y+=sp){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  for(let x=0;x<W;x+=sp){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  drawParticles();
+})(0);
+
+// init
+document.getElementById('startBest').textContent = `🏆 Récord: ${best} m`;
+</script>
+</body>
+</html>

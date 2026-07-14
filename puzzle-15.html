@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="google-adsense-account" content="ca-pub-2358850294363122">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2358850294363122" crossorigin="anonymous"></script>
+<title>15-Puzzle • CristoPlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --bg:    #03030e;
+  --text:  #e0e0ff;
+  --dim:   #44448a;
+  --panel: rgba(255,255,255,0.04);
+  --pb:    rgba(255,255,255,0.07);
+  --cyan:  #00f5ff;
+  --pink:  #ff0090;
+  --yellow:#ffe600;
+  --green: #39ff14;
+  --purple:#aa00ff;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{
+  font-family:'Rajdhani',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden; user-select:none;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,245,255,0.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,255,0.022) 1px,transparent 1px);
+  background-size:52px 52px;
+  animation:gridDrift 28s linear infinite;
+}
+@keyframes gridDrift{ to{ background-position:0 52px; } }
+body::after{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 700px 500px at 15% 25%,rgba(0,245,255,0.05) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 500px at 85% 75%,rgba(170,0,255,0.06) 0%,transparent 70%);
+}
+.scanlines{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+}
+
+/* ─── LAYOUT ─── */
+#app{ position:relative; z-index:2; display:flex; flex-direction:column; min-height:100vh; }
+
+/* ─── HEADER ─── */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 5%; border-bottom:1px solid var(--pb);
+  background:rgba(3,3,14,0.93); backdrop-filter:blur(8px);
+  position:sticky; top:0; z-index:50;
+}
+.back-btn{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:3px;
+  color:var(--dim); text-decoration:none;
+  padding:8px 13px; border:1px solid var(--pb); border-radius:6px; transition:all 0.2s;
+}
+.back-btn:hover{ color:var(--cyan); border-color:rgba(0,245,255,0.3); }
+.h-center{ display:flex; flex-direction:column; align-items:center; }
+.h-title{
+  font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; letter-spacing:4px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.h-sub{ font-size:0.58rem; letter-spacing:4px; color:var(--dim); text-transform:uppercase; }
+.h-right{ display:flex; flex-direction:column; align-items:flex-end; }
+.h-moves-val{
+  font-family:'Orbitron',monospace; font-size:1.3rem; font-weight:900;
+  color:var(--yellow); text-shadow:0 0 15px rgba(255,230,0,0.6); transition:transform 0.12s;
+}
+.h-moves-val.bump{ transform:scale(1.3); }
+.h-moves-lbl{ font-size:0.58rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+
+/* ─── INFO ROW ─── */
+.info-row{
+  display:flex; justify-content:center; gap:16px; padding:14px 5%; flex-wrap:wrap;
+}
+.chip{
+  display:flex; align-items:center; gap:9px;
+  background:var(--panel); border:1px solid var(--pb); border-radius:10px; padding:9px 16px;
+}
+.chip-val{
+  font-family:'Orbitron',monospace; font-size:1rem; font-weight:900;
+  color:var(--cyan); text-shadow:0 0 10px rgba(0,245,255,0.4);
+}
+.chip-lbl{ font-size:0.62rem; letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
+
+/* ─── SIZE BAR ─── */
+.size-bar{
+  display:flex; align-items:center; justify-content:center;
+  gap:8px; padding:10px 5%; flex-wrap:wrap;
+}
+.size-label{ font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; margin-right:4px; }
+.size-btn{
+  font-family:'Orbitron',monospace; font-size:0.65rem; font-weight:700; letter-spacing:2px;
+  padding:7px 14px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--pb); background:var(--panel); color:var(--dim); transition:all 0.22s;
+}
+.size-btn:hover{ color:var(--text); border-color:rgba(0,245,255,0.35); }
+.size-btn.active{
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  color:#000; border-color:transparent; box-shadow:0 0 16px rgba(0,245,255,0.4);
+}
+
+/* ─── STATUS ─── */
+.status-bar{
+  text-align:center; padding:8px 5%;
+  font-family:'Orbitron',monospace; font-size:0.7rem;
+  letter-spacing:4px; text-transform:uppercase; min-height:34px;
+  color:var(--dim); transition:color 0.3s;
+}
+.status-bar.win  { color:var(--green);  animation:sPulse 0.7s ease-in-out infinite; }
+.status-bar.hint { color:var(--pink); }
+@keyframes sPulse{ 0%,100%{opacity:1}50%{opacity:0.4} }
+
+/* ─── PROGRESS ─── */
+.prog-row{
+  display:flex; align-items:center; gap:12px; justify-content:center; padding:2px 5% 12px;
+}
+.prog-label{ font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; white-space:nowrap; }
+.prog-bg{ flex:1; max-width:360px; height:4px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+.prog-fill{
+  height:100%; width:0%;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  border-radius:4px; box-shadow:0 0 8px rgba(0,245,255,0.4); transition:width 0.4s ease;
+}
+.prog-pct{ font-family:'Orbitron',monospace; font-size:0.62rem; color:var(--cyan); white-space:nowrap; }
+
+/* ─── BOARD ─── */
+.board-wrapper{
+  flex:1; display:flex; align-items:center; justify-content:center; padding:10px 4% 16px;
+}
+.board-frame{
+  background:rgba(0,0,0,0.45); border:1px solid rgba(0,245,255,0.1);
+  border-radius:20px; padding:16px;
+  box-shadow:0 0 60px rgba(0,245,255,0.04),inset 0 0 40px rgba(0,0,0,0.6);
+}
+.board{ display:grid; gap:6px; position:relative; }
+
+/* ─── TILE ─── */
+.tile{
+  border-radius:10px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative; overflow:hidden;
+  border:1px solid #1e1e48; background:#0d0d28;
+  transition:transform 0.14s cubic-bezier(0.23,1,0.32,1), box-shadow 0.14s, background 0.2s, border-color 0.2s;
+  will-change:transform;
+}
+.tile::before{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,transparent 55%);
+  border-radius:inherit; pointer-events:none;
+}
+
+/* per-value color */
+.tile[data-val="1"]  { --tc:#ff1744 }
+.tile[data-val="2"]  { --tc:#ff6d00 }
+.tile[data-val="3"]  { --tc:#ffe600 }
+.tile[data-val="4"]  { --tc:#39ff14 }
+.tile[data-val="5"]  { --tc:#00f5ff }
+.tile[data-val="6"]  { --tc:#2979ff }
+.tile[data-val="7"]  { --tc:#aa00ff }
+.tile[data-val="8"]  { --tc:#ff0090 }
+.tile[data-val="9"]  { --tc:#ff80ab }
+.tile[data-val="10"] { --tc:#ffab40 }
+.tile[data-val="11"] { --tc:#eeff41 }
+.tile[data-val="12"] { --tc:#69ff47 }
+.tile[data-val="13"] { --tc:#18ffff }
+.tile[data-val="14"] { --tc:#40c4ff }
+.tile[data-val="15"] { --tc:#e040fb }
+.tile[data-val="16"] { --tc:#ff6e40 }
+.tile[data-val="17"] { --tc:#b2ff59 }
+.tile[data-val="18"] { --tc:#84ffff }
+.tile[data-val="19"] { --tc:#80d8ff }
+.tile[data-val="20"] { --tc:#ea80fc }
+.tile[data-val="21"] { --tc:#ff9e80 }
+.tile[data-val="22"] { --tc:#ccff90 }
+.tile[data-val="23"] { --tc:#a7ffeb }
+.tile[data-val="24"] { --tc:#ffe57f }
+
+.tile-num{
+  color:var(--tc,#fff);
+  text-shadow:0 0 12px var(--tc,rgba(255,255,255,0.5));
+  font-family:'Orbitron',monospace; font-weight:900;
+  position:relative; z-index:1;
+}
+.tile:not(.empty):not(.can-move):hover{
+  background:#12123a; transform:scale(0.96);
+}
+.tile.can-move{
+  border-color:rgba(0,245,255,0.28); background:#0f0f30; cursor:pointer;
+}
+.tile.can-move:hover{
+  border-color:var(--tc,var(--cyan));
+  box-shadow:0 0 16px rgba(0,245,255,0.18),inset 0 0 10px rgba(0,245,255,0.04);
+  transform:scale(0.93);
+}
+.tile.in-place{
+  border-color:rgba(57,255,20,0.22); background:#091509;
+}
+.tile.in-place .tile-num{
+  text-shadow:0 0 12px var(--tc,rgba(57,255,20,0.5)),0 0 28px rgba(57,255,20,0.15);
+}
+.tile.hint-tile{
+  border-color:var(--pink) !important;
+  box-shadow:0 0 20px rgba(255,0,144,0.7),0 0 40px rgba(255,0,144,0.3) !important;
+  animation:hintP 0.7s ease-in-out infinite;
+}
+@keyframes hintP{
+  0%,100%{ box-shadow:0 0 20px rgba(255,0,144,0.7),0 0 40px rgba(255,0,144,0.3); }
+  50%{     box-shadow:0 0 32px rgba(255,0,144,0.9),0 0 60px rgba(255,0,144,0.5); }
+}
+.tile.sliding{ animation:slideA 0.14s cubic-bezier(0.23,1,0.32,1); z-index:5; }
+@keyframes slideA{ 0%{transform:scale(1.07)}100%{transform:scale(1)} }
+.tile.empty{
+  background:rgba(0,0,0,0.3); border:1px dashed rgba(0,245,255,0.08);
+  cursor:default; pointer-events:none;
+}
+
+/* ─── CONTROLS ─── */
+.ctrl-row{
+  display:flex; justify-content:center; gap:10px; padding:0 5% 28px; flex-wrap:wrap;
+}
+.ctrl-btn{
+  font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:3px; text-transform:uppercase;
+  padding:10px 18px; border-radius:8px; cursor:pointer;
+  background:var(--panel); color:var(--dim); border:1px solid var(--pb);
+  transition:all 0.2s; display:flex; align-items:center; gap:8px;
+}
+.ctrl-btn:hover          { color:var(--text); border-color:rgba(0,245,255,0.35); }
+.ctrl-btn.warn:hover     { color:var(--yellow); border-color:rgba(255,230,0,0.4); }
+.ctrl-btn.pink-btn:hover { color:var(--pink); border-color:rgba(255,0,144,0.4); }
+
+/* ─── PARTICLE CANVAS ─── */
+#particles{ position:fixed; inset:0; pointer-events:none; z-index:3; }
+
+/* ─── WIN OVERLAY ─── */
+.w-overlay{
+  position:fixed; inset:0; z-index:100;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(3,3,14,0.94); backdrop-filter:blur(14px); padding:20px;
+}
+.w-overlay.show{ display:flex; animation:fadeIn 0.4s ease; }
+@keyframes fadeIn{ from{opacity:0}to{opacity:1} }
+.w-card{
+  background:linear-gradient(135deg,rgba(0,245,255,0.07),rgba(170,0,255,0.07));
+  border:1px solid rgba(0,245,255,0.25); border-radius:24px;
+  padding:46px 54px; max-width:460px; width:100%; text-align:center;
+  box-shadow:0 0 80px rgba(0,245,255,0.07);
+  animation:cardIn 0.5s cubic-bezier(0.23,1,0.32,1) backwards; animation-delay:0.15s;
+  max-height:90vh; overflow-y:auto;
+}
+@keyframes cardIn{ from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1} }
+.w-emoji{ font-size:3.5rem; margin-bottom:14px; display:block; animation:bounce 0.9s ease infinite alternate; }
+@keyframes bounce{ from{transform:translateY(0)}to{transform:translateY(-10px)} }
+.w-title{
+  font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; letter-spacing:3px;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:6px;
+}
+.w-sub{ color:var(--dim); letter-spacing:2px; font-size:0.88rem; margin-bottom:26px; }
+.w-stats{ display:flex; justify-content:center; gap:26px; margin-bottom:22px; }
+.w-stat{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+.w-stat-val{
+  font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900;
+  color:var(--cyan); text-shadow:0 0 18px rgba(0,245,255,0.5);
+}
+.w-stat-lbl{ font-size:0.6rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+.rec-banner{
+  background:rgba(255,230,0,0.08); border:1px solid rgba(255,230,0,0.25);
+  border-radius:8px; padding:8px 18px; margin-bottom:24px;
+  font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:3px;
+  color:var(--yellow); text-transform:uppercase; animation:recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse{ 0%,100%{opacity:1}50%{opacity:0.5} }
+.w-btns{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.btn-primary{
+  font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:3px;
+  padding:13px 26px; border-radius:10px; cursor:pointer;
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  color:#fff; border:none; box-shadow:0 0 20px rgba(0,245,255,0.35); transition:all 0.2s;
+}
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 0 30px rgba(0,245,255,0.55); }
+.btn-secondary{
+  font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:3px;
+  padding:13px 26px; border-radius:10px; cursor:pointer;
+  background:transparent; color:var(--dim); border:1px solid var(--pb); transition:all 0.2s;
+}
+.btn-secondary:hover{ color:var(--text); border-color:rgba(0,245,255,0.3); }
+
+/* ─── HELP MODAL ─── */
+.help-overlay{
+  position:fixed; inset:0; z-index:200;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(3,3,14,0.94); backdrop-filter:blur(14px); padding:20px;
+}
+.help-overlay.show{ display:flex; animation:fadeIn 0.3s ease; }
+.h-card{
+  background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(170,0,255,0.06));
+  border:1px solid rgba(0,245,255,0.18); border-radius:24px;
+  padding:40px 44px; max-width:520px; width:100%; position:relative;
+  max-height:90vh; overflow-y:auto;
+  scrollbar-width:thin; scrollbar-color:rgba(0,245,255,0.2) transparent;
+  animation:cardIn 0.4s cubic-bezier(0.23,1,0.32,1) backwards;
+}
+.h-close{
+  position:absolute; top:16px; right:16px; width:32px; height:32px;
+  border-radius:50%; background:rgba(255,255,255,0.04); border:1px solid var(--pb);
+  cursor:pointer; color:var(--dim); display:grid; place-items:center; font-size:0.85rem; transition:all 0.2s;
+}
+.h-close:hover{ color:var(--text); border-color:rgba(0,245,255,0.4); }
+.h-icon{ font-size:2.8rem; text-align:center; margin-bottom:14px; display:block; }
+.h-title{
+  font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900; letter-spacing:3px; text-align:center;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:4px;
+}
+.h-sub2{ text-align:center; color:var(--dim); font-size:0.82rem; letter-spacing:2px; margin-bottom:24px; }
+.h-sec{ margin-bottom:20px; }
+.h-sec-title{
+  font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:4px;
+  text-transform:uppercase; color:var(--cyan); margin-bottom:10px;
+  display:flex; align-items:center; gap:8px;
+}
+.h-sec-title::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,rgba(0,245,255,0.3),transparent); }
+.h-steps{ display:flex; flex-direction:column; gap:9px; }
+.h-step{
+  display:flex; align-items:flex-start; gap:12px;
+  background:rgba(255,255,255,0.03); border:1px solid var(--pb); border-radius:10px; padding:11px 14px;
+}
+.h-num{ font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:900; color:var(--cyan); min-width:22px; text-align:center; }
+.h-txt{ font-size:0.9rem; color:var(--text); line-height:1.5; }
+.h-txt b{ color:var(--yellow); }
+.h-txt em{ color:var(--cyan); font-style:normal; font-weight:600; }
+.demo-board{ display:inline-grid; grid-template-columns:repeat(4,26px); gap:3px; vertical-align:middle; margin:4px 6px; }
+.dt{ width:26px; height:26px; border-radius:4px; background:rgba(0,245,255,0.1); border:1px solid rgba(0,245,255,0.3); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.52rem; font-weight:700; color:var(--cyan); }
+.dt.empty{ background:rgba(0,0,0,0.4); border:1px dashed rgba(0,245,255,0.15); }
+.dt.can{ background:rgba(0,245,255,0.22); border-color:var(--cyan); box-shadow:0 0 6px rgba(0,245,255,0.4); }
+.size-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.sc{ font-family:'Orbitron',monospace; font-size:0.58rem; letter-spacing:2px; padding:6px 12px; border-radius:6px; border:1px solid rgba(0,245,255,0.25); color:var(--cyan); }
+.sc span{ display:block; font-size:0.52rem; color:var(--dim); margin-top:1px; }
+.h-tip{ background:rgba(255,230,0,0.05); border:1px solid rgba(255,230,0,0.2); border-radius:10px; padding:13px 15px; font-size:0.88rem; color:var(--text); line-height:1.5; }
+.h-tip b{ color:var(--yellow); }
+.h-foot{ margin-top:24px; }
+
+@media(max-width:480px){
+  .h-card,.w-card{ padding:28px 18px; }
+  .w-title{ font-size:1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <header>
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Volver</a>
+    <div class="h-center">
+      <div class="h-title">15-PUZZLE</div>
+      <div class="h-sub">Desliza · Ordena · Vence</div>
+    </div>
+    <div class="h-right">
+      <div class="h-moves-val" id="movesVal">0</div>
+      <div class="h-moves-lbl">Movimientos</div>
+    </div>
+  </header>
+
+  <div class="info-row">
+    <div class="chip">
+      <i class="fa-solid fa-trophy" style="color:var(--yellow);font-size:0.9rem"></i>
+      <div>
+        <div class="chip-val" id="recVal" style="color:var(--yellow);text-shadow:0 0 10px rgba(255,230,0,0.4)">—</div>
+        <div class="chip-lbl">Récord</div>
+      </div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-clock" style="color:var(--green);font-size:0.9rem"></i>
+      <div>
+        <div class="chip-val" id="timerVal" style="color:var(--green);text-shadow:0 0 10px rgba(57,255,20,0.4)">0:00</div>
+        <div class="chip-lbl">Tiempo</div>
+      </div>
+    </div>
+    <div class="chip">
+      <i class="fa-solid fa-check-double" style="color:var(--cyan);font-size:0.9rem"></i>
+      <div>
+        <div class="chip-val" id="inPlaceVal">0</div>
+        <div class="chip-lbl">En orden</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="size-bar">
+    <span class="size-label">Grilla</span>
+    <button class="size-btn" data-size="3">3×3 — 8</button>
+    <button class="size-btn active" data-size="4">4×4 — 15</button>
+    <button class="size-btn" data-size="5">5×5 — 24</button>
+  </div>
+
+  <div class="status-bar" id="statusBar">Desliza las piezas para ordenarlas</div>
+
+  <div class="prog-row">
+    <span class="prog-label">Orden</span>
+    <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+    <span class="prog-pct" id="progPct">0%</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="board-frame">
+      <div class="board" id="gameBoard"></div>
+    </div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="ctrl-btn warn" onclick="newGame()"><i class="fa-solid fa-shuffle"></i> Nuevo</button>
+    <button class="ctrl-btn" onclick="resetGame()"><i class="fa-solid fa-rotate-left"></i> Reiniciar</button>
+    <button class="ctrl-btn pink-btn" onclick="showHint()"><i class="fa-solid fa-lightbulb"></i> Pista</button>
+    <button class="ctrl-btn" onclick="document.getElementById('helpOverlay').classList.add('show')"><i class="fa-solid fa-circle-question"></i> ¿Cómo jugar?</button>
+  </div>
+</div>
+
+<!-- WIN -->
+<div class="w-overlay" id="winOverlay">
+  <div class="w-card">
+    <span class="w-emoji">🏆</span>
+    <div class="w-title">¡RESUELTO!</div>
+    <div class="w-sub">Puzzle completado con maestría</div>
+    <div class="w-stats">
+      <div class="w-stat"><div class="w-stat-val" id="winMoves">0</div><div class="w-stat-lbl">Movimientos</div></div>
+      <div class="w-stat"><div class="w-stat-val" id="winTime">0:00</div><div class="w-stat-lbl">Tiempo</div></div>
+      <div class="w-stat"><div class="w-stat-val" id="winSize">4×4</div><div class="w-stat-lbl">Grilla</div></div>
+    </div>
+    <div class="rec-banner" id="winRecBanner" style="display:none">⚡ ¡NUEVO RÉCORD PERSONAL! ⚡</div>
+    <div class="w-btns">
+      <button class="btn-primary" onclick="closeWin();newGame()">▶ Nuevo puzzle</button>
+      <button class="btn-secondary" onclick="closeWin();resetGame()">↩ Reintentar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="h-card">
+    <button class="h-close" onclick="document.getElementById('helpOverlay').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+    <span class="h-icon">🔢</span>
+    <div class="h-title">15-PUZZLE</div>
+    <div class="h-sub2">El clásico rompecabezas deslizante</div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Objetivo</div>
+      <div class="h-step" style="background:rgba(0,245,255,0.05);border-color:rgba(0,245,255,0.2)">
+        <div class="h-num">🎯</div>
+        <div class="h-txt">Ordenar los números <b>de menor a mayor</b>, de izquierda a derecha y de arriba a abajo. El hueco vacío debe quedar <b>al final</b>, abajo a la derecha.</div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">¿Cómo se juega?</div>
+      <div class="h-steps">
+        <div class="h-step">
+          <div class="h-num">1</div>
+          <div class="h-txt">Solo puedes mover piezas que están <b>directamente junto al hueco</b> — arriba, abajo, izquierda o derecha.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">2</div>
+          <div class="h-txt"><b>Haz clic</b> en una pieza adyacente al hueco para deslizarla. Las piezas movibles tienen <em>borde iluminado</em>.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">3</div>
+          <div class="h-txt">También puedes usar las <b>teclas de flecha ↑ ↓ ← →</b> del teclado.</div>
+        </div>
+        <div class="h-step">
+          <div class="h-num">4</div>
+          <div class="h-txt">Las piezas <em>ya en su posición correcta</em> se muestran con borde verde. ¡Completa el puzzle con los <b>menos movimientos</b> posibles!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Ejemplo — piezas movibles</div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:4px 0 8px">
+        <div class="demo-board">
+          <div class="dt">1</div><div class="dt">2</div><div class="dt can">3</div><div class="dt">4</div>
+          <div class="dt">5</div><div class="dt">6</div><div class="dt empty"></div><div class="dt can">7</div>
+          <div class="dt">8</div><div class="dt can">9</div><div class="dt">10</div><div class="dt">11</div>
+          <div class="dt">12</div><div class="dt">13</div><div class="dt can">14</div><div class="dt">15</div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--dim);max-width:160px;line-height:1.5">Las piezas <span style="color:var(--cyan);font-weight:700">resaltadas</span> son las 4 que se pueden mover al hueco.</div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Tamaños</div>
+      <div class="size-chips">
+        <div class="sc">3×3<span>8 piezas — Fácil</span></div>
+        <div class="sc">4×4<span>15 piezas — Clásico</span></div>
+        <div class="sc">5×5<span>24 piezas — Desafío</span></div>
+      </div>
+    </div>
+
+    <div class="h-sec">
+      <div class="h-sec-title">Consejo</div>
+      <div class="h-tip">💡 <b>Estrategia:</b> resuelve primero la fila superior y la columna izquierda, luego el resto. No intentes resolver todo de golpe — ve sección por sección. Todos los puzzles generados por este juego tienen solución garantizada.</div>
+    </div>
+
+    <div class="h-foot">
+      <button class="btn-primary" style="width:100%" onclick="document.getElementById('helpOverlay').classList.remove('show')">¡Entendido, a deslizar!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let N=4, tiles=[], initTiles=[], moves=0, seconds=0;
+let timerInt=null, started=false, gameWon=false, hintIdx=-1;
+
+const recKey = n => `puzzle_rec_${n}`;
+const getRecord = n => { const v=localStorage.getItem(recKey(n)); return v?parseInt(v):null; };
+const setRecord = (n,m) => localStorage.setItem(recKey(n),m);
+
+// ─── SOLVABLE GENERATOR ──────────────────────────────────────────────────────
+function generateSolvable(n) {
+  const total=n*n; let arr;
+  do {
+    arr=Array.from({length:total},(_,i)=>i);
+    for(let i=total-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  } while(!isSolvable(arr,n)||isSolved(arr,n));
+  return arr;
+}
+
+function isSolvable(arr,n) {
+  const flat=arr.filter(v=>v!==0);
+  let inv=0;
+  for(let i=0;i<flat.length;i++) for(let j=i+1;j<flat.length;j++) if(flat[i]>flat[j]) inv++;
+  const fromBottom=n-Math.floor(arr.indexOf(0)/n);
+  if(n%2===1) return inv%2===0;
+  return fromBottom%2===0 ? inv%2===1 : inv%2===0;
+}
+
+function isSolved(arr,n) {
+  const t=n*n;
+  for(let i=0;i<t-1;i++) if(arr[i]!==i+1) return false;
+  return arr[t-1]===0;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function initGame(n) {
+  N=n; moves=0; seconds=0; started=false; gameWon=false; hintIdx=-1;
+  clearInterval(timerInt);
+  tiles=generateSolvable(n); initTiles=[...tiles];
+  buildBoard(); updateAll(); updateInfoBar();
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.size)===n));
+  document.getElementById('timerVal').textContent='0:00';
+}
+
+function newGame()  { initGame(N); document.getElementById('winOverlay').classList.remove('show'); }
+function resetGame(){ tiles=[...initTiles]; moves=0; seconds=0; started=false; gameWon=false; hintIdx=-1; clearInterval(timerInt); updateAll(); updateInfoBar(); document.getElementById('timerVal').textContent='0:00'; }
+function closeWin() { document.getElementById('winOverlay').classList.remove('show'); }
+
+// ─── BUILD DOM ────────────────────────────────────────────────────────────────
+function buildBoard() {
+  const board=document.getElementById('gameBoard');
+  board.innerHTML='';
+  const maxB=Math.min(window.innerWidth*0.82,460);
+  const cell=Math.floor((maxB-(N-1)*6-32)/N);
+  const fs=Math.max(11,cell*0.32)+'px';
+  board.style.gridTemplateColumns=`repeat(${N},${cell}px)`;
+  for(let i=0;i<N*N;i++){
+    const t=document.createElement('div');
+    t.className='tile'; t.style.width=cell+'px'; t.style.height=cell+'px'; t.dataset.idx=i;
+    const num=document.createElement('div'); num.className='tile-num'; num.style.fontSize=fs;
+    t.appendChild(num);
+    t.addEventListener('click',()=>handleClick(i));
+    board.appendChild(t);
+  }
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderBoard() {
+  const els=document.querySelectorAll('.tile');
+  const emptyIdx=tiles.indexOf(0);
+  els.forEach((el,i)=>{
+    const val=tiles[i];
+    el.className='tile'; el.dataset.val=val;
+    if(val===0){ el.classList.add('empty'); el.querySelector('.tile-num').textContent=''; return; }
+    el.querySelector('.tile-num').textContent=val;
+    if(val===i+1) el.classList.add('in-place');
+    if(canMove(i,emptyIdx)) el.classList.add('can-move');
+    if(i===hintIdx) el.classList.add('hint-tile');
+  });
+}
+
+function canMove(idx,emptyIdx){
+  const r1=Math.floor(idx/N),c1=idx%N, r2=Math.floor(emptyIdx/N),c2=emptyIdx%N;
+  return (r1===r2&&Math.abs(c1-c2)===1)||(c1===c2&&Math.abs(r1-r2)===1);
+}
+
+// ─── MOVE ─────────────────────────────────────────────────────────────────────
+function handleClick(idx){ if(gameWon) return; const e=tiles.indexOf(0); if(!canMove(idx,e)) return; clearHint(); doMove(idx); }
+
+function doMove(idx){
+  const e=tiles.indexOf(0); if(!canMove(idx,e)) return;
+  if(!started){ started=true; timerInt=setInterval(()=>{ seconds++; const m=Math.floor(seconds/60),s=String(seconds%60).padStart(2,'0'); document.getElementById('timerVal').textContent=`${m}:${s}`; },1000); }
+  [tiles[idx],tiles[e]]=[tiles[e],tiles[idx]]; moves++;
+  playClick(); updateAll();
+  const el=document.querySelectorAll('.tile')[idx];
+  el.classList.add('sliding'); setTimeout(()=>el.classList.remove('sliding'),160);
+  spawnParticle(idx);
+  const mv=document.getElementById('movesVal');
+  mv.textContent=moves; mv.classList.remove('bump'); void mv.offsetWidth; mv.classList.add('bump');
+  if(isSolved(tiles,N)) setTimeout(winGame,350);
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function updateAll(){ renderBoard(); updateStats(); }
+
+function updateStats(){
+  const total=N*N-1;
+  const inPlace=tiles.filter((v,i)=>v!==0&&v===i+1).length;
+  const pct=Math.round((inPlace/total)*100);
+  document.getElementById('inPlaceVal').textContent=inPlace;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+  const bar=document.getElementById('statusBar');
+  if(inPlace===total){ bar.textContent='🎉 ¡Completado!'; bar.className='status-bar win'; }
+  else if(inPlace>=Math.floor(total*0.75)){ bar.textContent=`⚡ ¡Casi! Solo ${total-inPlace} pieza${total-inPlace>1?'s':''} restante${total-inPlace>1?'s':''}`; bar.className='status-bar'; bar.style.color='var(--green)'; }
+  else { bar.textContent='Desliza las piezas para ordenarlas'; bar.className='status-bar'; bar.style.color=''; }
+}
+
+function updateInfoBar(){ document.getElementById('movesVal').textContent=moves; document.getElementById('recVal').textContent=getRecord(N)??'—'; }
+
+// ─── WIN ──────────────────────────────────────────────────────────────────────
+function winGame(){
+  clearInterval(timerInt); gameWon=true;
+  const rec=getRecord(N), isRec=rec===null||moves<rec;
+  if(isRec) setRecord(N,moves);
+  const m=Math.floor(seconds/60),s=String(seconds%60).padStart(2,'0');
+  document.getElementById('winMoves').textContent=moves;
+  document.getElementById('winTime').textContent=`${m}:${s}`;
+  document.getElementById('winSize').textContent=`${N}×${N}`;
+  document.getElementById('winRecBanner').style.display=isRec?'block':'none';
+  document.getElementById('winOverlay').classList.add('show');
+  document.getElementById('recVal').textContent=getRecord(N);
+  spawnWinParticles(); playWin();
+}
+
+// ─── HINT ─────────────────────────────────────────────────────────────────────
+function showHint(){
+  clearHint();
+  const e=tiles.indexOf(0);
+  const movable=[];
+  for(let i=0;i<N*N;i++) if(tiles[i]!==0&&canMove(i,e)) movable.push(i);
+  let best=null, bestScore=-Infinity;
+  movable.forEach(idx=>{
+    const val=tiles[idx], target=val-1;
+    const score=manhattan(idx,target)-manhattan(e,target);
+    if(score>bestScore){ bestScore=score; best=idx; }
+  });
+  if(best!==null){
+    hintIdx=best; renderBoard();
+    const bar=document.getElementById('statusBar');
+    bar.textContent='💡 Pista: mueve la pieza rosa'; bar.className='status-bar hint';
+    setTimeout(clearHint,3000);
+  }
+}
+
+function clearHint(){
+  hintIdx=-1;
+  document.querySelectorAll('.tile.hint-tile').forEach(t=>t.classList.remove('hint-tile'));
+  if(!gameWon){ const bar=document.getElementById('statusBar'); bar.className='status-bar'; bar.style.color=''; bar.textContent='Desliza las piezas para ordenarlas'; }
+}
+
+function manhattan(i,j){ return Math.abs(Math.floor(i/N)-Math.floor(j/N))+Math.abs(i%N-j%N); }
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(gameWon) return;
+  const ei=tiles.indexOf(0), er=Math.floor(ei/N), ec=ei%N;
+  let t=-1;
+  if(e.key==='ArrowUp'   &&er<N-1) t=ei+N;
+  if(e.key==='ArrowDown' &&er>0)   t=ei-N;
+  if(e.key==='ArrowLeft' &&ec<N-1) t=ei+1;
+  if(e.key==='ArrowRight'&&ec>0)   t=ei-1;
+  if(t!==-1){ e.preventDefault(); clearHint(); doMove(t); }
+});
+
+// ─── SIZE BTNS ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.size-btn').forEach(b=>b.addEventListener('click',()=>{ initGame(parseInt(b.dataset.size)); document.getElementById('winOverlay').classList.remove('show'); }));
+window.addEventListener('resize',()=>{ buildBoard(); renderBoard(); });
+
+// ─── AUDIO ────────────────────────────────────────────────────────────────────
+let actx=null;
+const getCtx=()=>{ if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)(); return actx; };
+function playClick(){ try{ const ctx=getCtx(); ctx.resume(); const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.frequency.value=660+Math.random()*200; o.type='sine'; g.gain.setValueAtTime(0.1,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.08); o.start();o.stop(ctx.currentTime+0.08); }catch(e){} }
+function playWin(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>{ try{ const ctx=getCtx(),o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g);g.connect(ctx.destination); o.frequency.value=f;o.type='sine'; g.gain.setValueAtTime(0.18,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.22); o.start();o.stop(ctx.currentTime+0.22); }catch(e){} },i*110)); }
+
+// ─── PARTICLES ────────────────────────────────────────────────────────────────
+const canvas=document.getElementById('particles'), pctx=canvas.getContext('2d');
+let particles=[];
+const resize=()=>{ canvas.width=innerWidth; canvas.height=innerHeight; };
+resize(); window.addEventListener('resize',resize);
+
+function spawnParticle(idx){
+  const el=document.querySelectorAll('.tile')[idx]; if(!el) return;
+  const r=el.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+  const cols=['#00f5ff','#aa00ff','#ffe600','#ff0090','#39ff14'];
+  for(let i=0;i<8;i++) particles.push({ x:cx,y:cy, vx:(Math.random()-0.5)*5, vy:(Math.random()-1.5)*4, life:1, decay:0.05+Math.random()*0.04, size:1.5+Math.random()*2.5, color:cols[Math.floor(Math.random()*cols.length)] });
+}
+
+function spawnWinParticles(){
+  const cols=['#00f5ff','#aa00ff','#ffe600','#ff0090','#39ff14','#ff6600'];
+  for(let i=0;i<110;i++) particles.push({ x:Math.random()*innerWidth,y:-10, vx:(Math.random()-0.5)*4,vy:2+Math.random()*5, life:1,decay:0.007+Math.random()*0.007, size:3+Math.random()*5,color:cols[i%cols.length], confetti:true,rot:Math.random()*Math.PI*2,rotV:(Math.random()-0.5)*0.15 });
+}
+
+function animP(){
+  pctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{ p.x+=p.vx;p.y+=p.vy;p.life-=p.decay; if(p.confetti){p.vy+=0.05;p.rot+=p.rotV;} pctx.save();pctx.globalAlpha=p.life;pctx.translate(p.x,p.y); if(p.confetti){pctx.rotate(p.rot);pctx.fillStyle=p.color;pctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);}else{pctx.beginPath();pctx.arc(0,0,p.size,0,Math.PI*2);pctx.fillStyle=p.color;pctx.shadowBlur=8;pctx.shadowColor=p.color;pctx.fill();} pctx.restore(); });
+  requestAnimationFrame(animP);
+}
+animP();
+
+// ─── START ────────────────────────────────────────────────────────────────────
+initGame(4);
+</script>
+</body>
+</html>

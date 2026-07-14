@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Apnea · Océano Profundo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   VARIABLES & RESET
+══════════════════════════════════════════ */
+:root {
+  --deep:    #020d1a;
+  --ocean1:  #0a2342;
+  --ocean2:  #0d3b6e;
+  --ocean3:  #1565c0;
+  --surface: #29b6f6;
+  --foam:    #e0f7fa;
+  --coral:   #ff7043;
+  --sand:    #ffe0b2;
+  --green:   #00e676;
+  --yellow:  #ffe600;
+  --red:     #ff1744;
+  --white:   #ffffff;
+  --text:    #e0f7fa;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ width:100%; height:100%; overflow:hidden; }
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--deep); color:var(--text);
+  user-select:none;
+}
+
+/* ══════════════════════════════════════════
+   OCEAN CANVAS + LAYERS
+══════════════════════════════════════════ */
+#ocean{
+  position:fixed; inset:0; z-index:0;
+  background:linear-gradient(180deg,
+    #29b6f6 0%,
+    #0d47a1 15%,
+    #0a2342 40%,
+    #051020 70%,
+    #020d1a 100%
+  );
+  transition:background 2s ease;
+}
+
+/* Light rays from surface */
+.ray{
+  position:absolute; top:0; width:60px;
+  background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 80%);
+  transform-origin:top center;
+  animation:rayWave 6s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes rayWave{
+  0%,100%{ transform:skewX(-8deg) scaleX(1); opacity:0.6; }
+  50%{     transform:skewX(8deg)  scaleX(1.3); opacity:0.3; }
+}
+
+/* Floating particles (plankton) */
+.plankton{
+  position:absolute; border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  animation:drift linear infinite;
+  pointer-events:none;
+}
+@keyframes drift{
+  0%  { transform:translate(0,0)     scale(1); opacity:0.6; }
+  50% { transform:translate(20px,-30px) scale(0.7); opacity:0.3; }
+  100%{ transform:translate(-10px,-60px) scale(0.4); opacity:0; }
+}
+
+/* Seaweed */
+.seaweed{
+  position:absolute; bottom:0; width:18px;
+  transform-origin:bottom center;
+  animation:sway 3s ease-in-out infinite alternate;
+}
+@keyframes sway{ from{transform:rotate(-12deg)} to{transform:rotate(12deg)} }
+
+/* ══════════════════════════════════════════
+   BUBBLES
+══════════════════════════════════════════ */
+.bubble{
+  position:absolute;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.7),rgba(255,255,255,0.1));
+  border:1px solid rgba(255,255,255,0.3);
+  animation:bubbleUp linear forwards;
+  pointer-events:none; z-index:2;
+}
+@keyframes bubbleUp{
+  0%  { transform:translateY(0)    translateX(0)   scale(1);   opacity:0.8; }
+  40% { transform:translateY(-40vh) translateX(12px) scale(1.05); opacity:0.6; }
+  100%{ transform:translateY(-100vh) translateX(-8px) scale(0.3); opacity:0; }
+}
+
+/* ══════════════════════════════════════════
+   DIVER
+══════════════════════════════════════════ */
+#diver-wrap{
+  position:fixed; left:50%; z-index:10;
+  transform:translateX(-50%);
+  transition:top 1.5s cubic-bezier(0.25,0.46,0.45,0.94);
+  pointer-events:none;
+}
+#diver-svg{ width:110px; animation:diverFloat 3s ease-in-out infinite; }
+@keyframes diverFloat{
+  0%,100%{ transform:rotate(-4deg) translateY(0); }
+  50%{     transform:rotate(4deg)  translateY(-10px); }
+}
+#diver-svg.diving{ animation:diverFloat 3s ease-in-out infinite, bubbleBreath 0.8s ease-in-out infinite; }
+@keyframes bubbleBreath{ 0%,100%{filter:drop-shadow(0 0 4px rgba(0,245,255,0.3))} 50%{filter:drop-shadow(0 0 16px rgba(0,245,255,0.7))} }
+
+/* Face emotions */
+#face-happy   { display:block; }
+#face-ok      { display:none; }
+#face-stressed{ display:none; }
+#face-danger  { display:none; }
+
+/* ══════════════════════════════════════════
+   MARINE CREATURES
+══════════════════════════════════════════ */
+.creature{
+  position:fixed; z-index:8; pointer-events:none;
+  animation:swimBy linear forwards;
+  font-size:2.4rem;
+  filter:drop-shadow(0 0 8px rgba(0,200,255,0.4));
+}
+@keyframes swimBy{
+  from{ transform:translateX(0) scaleX(1); opacity:0; }
+  5%  { opacity:1; }
+  95% { opacity:1; }
+  to  { transform:translateX(110vw) scaleX(1); opacity:0; }
+}
+.creature.rtl{
+  animation:swimByRTL linear forwards;
+}
+@keyframes swimByRTL{
+  from{ transform:translateX(0) scaleX(-1); opacity:0; }
+  5%  { opacity:1; }
+  95% { opacity:1; }
+  to  { transform:translateX(-110vw) scaleX(-1); opacity:0; }
+}
+
+/* ══════════════════════════════════════════
+   DEPTH METER
+══════════════════════════════════════════ */
+#depth-meter{
+  position:fixed; right:20px; top:50%; transform:translateY(-50%);
+  width:44px; z-index:20;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.depth-bar{
+  width:12px; height:340px;
+  background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15);
+  border-radius:8px; overflow:hidden; position:relative;
+}
+.depth-fill{
+  position:absolute; bottom:0; width:100%;
+  background:linear-gradient(to top,#00e676,#00b0ff,#29b6f6);
+  border-radius:8px; transition:height 0.5s ease;
+  box-shadow:0 0 10px rgba(0,230,118,0.4);
+}
+.depth-label{
+  font-family:'Fredoka One',cursive; font-size:0.68rem;
+  color:rgba(255,255,255,0.6); letter-spacing:1px; text-align:center;
+  writing-mode:vertical-rl; transform:rotate(180deg);
+}
+#depth-val{
+  font-family:'Fredoka One',cursive; font-size:0.85rem; color:var(--green);
+  text-shadow:0 0 8px rgba(0,230,118,0.5); text-align:center;
+}
+
+/* ══════════════════════════════════════════
+   OXYGEN BAR
+══════════════════════════════════════════ */
+#oxy-wrap{
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+  width:min(560px,88vw); z-index:20;
+}
+#oxy-track{
+  height:52px; border-radius:30px;
+  background:rgba(0,0,0,0.5);
+  border:2px solid rgba(0,245,255,0.3);
+  box-shadow:0 0 20px rgba(0,245,255,0.15);
+  overflow:hidden; position:relative;
+}
+#oxy-fill{
+  height:100%; width:100%; border-radius:30px;
+  background:linear-gradient(90deg,#ff1744 0%,#ffe600 45%,#00e676 100%);
+  transition:width 0.6s ease, filter 0.6s ease;
+  position:relative;
+}
+#oxy-fill::after{
+  content:'OXÍGENO'; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  font-family:'Fredoka One',cursive; font-size:1rem; letter-spacing:3px;
+  color:rgba(255,255,255,0.9); text-shadow:1px 1px 4px rgba(0,0,0,0.6);
+  white-space:nowrap;
+}
+#oxy-pct{
+  position:absolute; right:16px; top:50%; transform:translateY(-50%);
+  font-family:'Fredoka One',cursive; font-size:1.1rem; color:#fff;
+  text-shadow:0 0 8px rgba(0,0,0,0.8); z-index:1;
+}
+
+/* ══════════════════════════════════════════
+   TIMER RING
+══════════════════════════════════════════ */
+#timer-ring{
+  position:fixed; top:22px; left:50%; transform:translateX(-50%);
+  z-index:20; display:none; flex-direction:column; align-items:center; gap:2px;
+}
+.ring-svg{ width:110px; height:110px; }
+.ring-bg { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:8; }
+.ring-prog{
+  fill:none; stroke:var(--green); stroke-width:8;
+  stroke-linecap:round;
+  stroke-dasharray:283; stroke-dashoffset:0;
+  transform:rotate(-90deg); transform-origin:50% 50%;
+  transition:stroke-dashoffset 0.8s ease, stroke 0.5s ease;
+}
+#ring-num{
+  font-family:'Fredoka One',cursive; font-size:2rem;
+  fill:white; text-anchor:middle; dominant-baseline:middle;
+}
+#ring-label{
+  font-family:'Fredoka One',cursive; font-size:0.7rem;
+  letter-spacing:3px; color:rgba(255,255,255,0.5); text-transform:uppercase;
+}
+
+/* ══════════════════════════════════════════
+   SCREENS
+══════════════════════════════════════════ */
+.screen{
+  position:fixed; inset:0; z-index:30;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:20px;
+  transition:opacity 0.5s ease, transform 0.5s ease;
+}
+.screen.hidden{ opacity:0; pointer-events:none; transform:scale(0.97); }
+
+/* ── START ── */
+#start-screen{ background:linear-gradient(180deg,rgba(2,13,26,0.85),rgba(5,16,32,0.95)); }
+
+.game-title{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(2.8rem,8vw,5rem);
+  background:linear-gradient(90deg,#29b6f6,#00e676);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(41,182,246,0.5));
+  text-align:center; line-height:1.1; margin-bottom:6px;
+}
+.game-subtitle{
+  font-size:1.1rem; color:rgba(255,255,255,0.6);
+  letter-spacing:3px; text-transform:uppercase; margin-bottom:30px; text-align:center;
+}
+
+/* Records panel */
+.records-panel{
+  display:flex; gap:16px; margin-bottom:28px; flex-wrap:wrap; justify-content:center;
+}
+.rec-chip{
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px; padding:10px 18px; text-align:center; min-width:90px;
+}
+.rec-val{
+  font-family:'Fredoka One',cursive; font-size:1.5rem;
+  color:var(--yellow); text-shadow:0 0 10px rgba(255,230,0,0.5);
+  display:block;
+}
+.rec-lbl{ font-size:0.68rem; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; }
+
+/* Mode cards */
+.modes-grid{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:14px;
+  width:min(540px,92vw); margin-bottom:20px;
+}
+.mode-card{
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px; padding:20px 16px; cursor:pointer; text-align:center;
+  transition:all 0.3s cubic-bezier(0.23,1,0.32,1);
+  position:relative; overflow:hidden;
+}
+.mode-card::before{
+  content:''; position:absolute; inset:0; border-radius:20px;
+  opacity:0; transition:opacity 0.3s;
+}
+.mode-card:hover{ transform:translateY(-4px) scale(1.02); }
+.mode-card:hover::before{ opacity:1; }
+
+.mode-card.easy   { border-color:rgba(0,230,118,0.35); }
+.mode-card.easy::before{ background:linear-gradient(135deg,rgba(0,230,118,0.12),transparent); }
+.mode-card.easy:hover{ box-shadow:0 8px 30px rgba(0,230,118,0.25); border-color:rgba(0,230,118,0.6); }
+
+.mode-card.medium { border-color:rgba(41,182,246,0.35); }
+.mode-card.medium::before{ background:linear-gradient(135deg,rgba(41,182,246,0.12),transparent); }
+.mode-card.medium:hover{ box-shadow:0 8px 30px rgba(41,182,246,0.25); border-color:rgba(41,182,246,0.6); }
+
+.mode-card.hard   { border-color:rgba(255,152,0,0.35); }
+.mode-card.hard::before{ background:linear-gradient(135deg,rgba(255,152,0,0.12),transparent); }
+.mode-card.hard:hover{ box-shadow:0 8px 30px rgba(255,152,0,0.25); border-color:rgba(255,152,0,0.6); }
+
+.mode-card.challenge{ border-color:rgba(255,0,144,0.35); }
+.mode-card.challenge::before{ background:linear-gradient(135deg,rgba(255,0,144,0.12),transparent); }
+.mode-card.challenge:hover{ box-shadow:0 8px 30px rgba(255,0,144,0.25); border-color:rgba(255,0,144,0.6); }
+
+.mode-emoji{ font-size:2.2rem; display:block; margin-bottom:8px; }
+.mode-name{
+  font-family:'Fredoka One',cursive; font-size:1.2rem; display:block; margin-bottom:4px;
+}
+.mode-card.easy     .mode-name { color:#00e676; }
+.mode-card.medium   .mode-name { color:#29b6f6; }
+.mode-card.hard     .mode-name { color:#ff9800; }
+.mode-card.challenge.mode-name { color:#ff0090; }
+.mode-card.challenge .mode-name { color:#ff0090; }
+.mode-time{ font-size:0.82rem; color:rgba(255,255,255,0.5); margin-bottom:8px; display:block; }
+.mode-desc{ font-size:0.78rem; color:rgba(255,255,255,0.4); line-height:1.4; }
+
+/* ── PREP ── */
+#prep-screen{ background:rgba(2,13,26,0.92); }
+.breath-guide{
+  display:flex; flex-direction:column; align-items:center; gap:20px;
+}
+.breath-circle-outer{
+  width:180px; height:180px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  border:3px solid rgba(41,182,246,0.3);
+  animation:breathe 4s ease-in-out infinite;
+  position:relative;
+}
+@keyframes breathe{
+  0%,100%{ transform:scale(0.85); border-color:rgba(41,182,246,0.2); box-shadow:0 0 20px rgba(41,182,246,0.1); }
+  50%{     transform:scale(1.1);  border-color:rgba(41,182,246,0.7); box-shadow:0 0 40px rgba(41,182,246,0.3); }
+}
+.breath-circle-inner{
+  width:120px; height:120px; border-radius:50%;
+  background:radial-gradient(circle,rgba(41,182,246,0.3),rgba(13,59,110,0.8));
+  border:2px solid rgba(41,182,246,0.4);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+}
+.breath-text{
+  font-family:'Fredoka One',cursive; font-size:1rem; color:#29b6f6;
+  letter-spacing:2px; text-transform:uppercase; text-align:center;
+}
+.breath-count{
+  font-family:'Fredoka One',cursive; font-size:2.5rem; color:#fff;
+  text-shadow:0 0 15px rgba(41,182,246,0.7);
+}
+.prep-instruction{
+  font-size:1.1rem; color:rgba(255,255,255,0.7); text-align:center; max-width:340px; line-height:1.6;
+}
+.prep-instruction b{ color:#29b6f6; }
+
+/* ── GAME ── */
+#game-screen{ background:transparent; pointer-events:none; }
+
+.score-badge{
+  position:fixed; top:22px; left:22px; z-index:20;
+  background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px; padding:10px 16px; backdrop-filter:blur(8px);
+  display:flex; flex-direction:column; align-items:center;
+}
+.score-val{
+  font-family:'Fredoka One',cursive; font-size:1.6rem;
+  color:var(--yellow); text-shadow:0 0 10px rgba(255,230,0,0.5);
+  transition:transform 0.15s;
+}
+.score-val.bump{ transform:scale(1.4); }
+.score-lbl{ font-size:0.6rem; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; }
+
+/* Action buttons */
+.action-btns{
+  position:fixed; bottom:110px; left:50%; transform:translateX(-50%);
+  display:flex; gap:14px; z-index:20; pointer-events:auto;
+}
+.action-btn{
+  font-family:'Fredoka One',cursive; font-size:1rem; letter-spacing:1px;
+  padding:14px 28px; border-radius:50px; border:none; cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5); transition:all 0.25s;
+  display:flex; align-items:center; gap:8px;
+}
+.action-btn:hover{ transform:translateY(-3px) scale(1.04); }
+.action-btn:active{ transform:scale(0.96); }
+
+.btn-dive{
+  background:linear-gradient(135deg,#0288d1,#00acc1);
+  color:#fff; box-shadow:0 8px 24px rgba(2,136,209,0.5);
+  animation:btnPulse 2s ease-in-out infinite;
+}
+@keyframes btnPulse{
+  0%,100%{ box-shadow:0 8px 24px rgba(2,136,209,0.5); }
+  50%{     box-shadow:0 8px 40px rgba(2,136,209,0.8),0 0 0 8px rgba(2,136,209,0.15); }
+}
+.btn-surface{
+  background:linear-gradient(135deg,#e53935,#e91e63);
+  color:#fff; box-shadow:0 8px 24px rgba(229,57,53,0.5);
+}
+
+/* Depth zones labels */
+.zone-label{
+  position:fixed; right:70px; z-index:15;
+  font-family:'Fredoka One',cursive; font-size:0.75rem;
+  color:rgba(255,255,255,0.3); letter-spacing:2px; text-transform:uppercase;
+  pointer-events:none;
+}
+
+/* ── RESULT ── */
+#result-screen{ background:rgba(2,13,26,0.95); }
+
+.result-emoji{ font-size:5rem; margin-bottom:10px; animation:resultBounce 0.8s cubic-bezier(0.23,1,0.32,1); }
+@keyframes resultBounce{ from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0)} }
+.result-title{
+  font-family:'Fredoka One',cursive; font-size:clamp(2rem,7vw,3.5rem);
+  text-align:center; margin-bottom:8px;
+}
+.result-title.win { color:#00e676; text-shadow:0 0 20px rgba(0,230,118,0.5); }
+.result-title.lose{ color:#ff7043; text-shadow:0 0 20px rgba(255,112,67,0.4); }
+
+.result-word{
+  font-size:1.05rem; color:rgba(255,255,255,0.6); text-align:center;
+  margin-bottom:28px; line-height:1.6; max-width:400px;
+}
+
+.result-stats{
+  display:flex; gap:20px; margin-bottom:28px; flex-wrap:wrap; justify-content:center;
+}
+.res-stat{
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px; padding:14px 20px; text-align:center; min-width:100px;
+}
+.res-stat-val{
+  font-family:'Fredoka One',cursive; font-size:1.8rem; color:var(--green);
+  text-shadow:0 0 10px rgba(0,230,118,0.4); display:block;
+}
+.res-stat-lbl{ font-size:0.65rem; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; }
+
+.new-record{
+  background:rgba(255,230,0,0.1); border:1px solid rgba(255,230,0,0.3);
+  border-radius:10px; padding:8px 20px; margin-bottom:20px;
+  font-family:'Fredoka One',cursive; font-size:0.85rem; letter-spacing:3px;
+  color:var(--yellow); text-transform:uppercase; animation:recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse{ 0%,100%{opacity:1}50%{opacity:0.5} }
+
+.result-tip{
+  background:rgba(41,182,246,0.08); border:1px solid rgba(41,182,246,0.2);
+  border-radius:14px; padding:14px 20px; max-width:400px;
+  font-size:0.9rem; color:rgba(255,255,255,0.7); text-align:center; line-height:1.5;
+  margin-bottom:24px;
+}
+.result-tip b{ color:#29b6f6; }
+
+.result-btns{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.rbtn{
+  font-family:'Fredoka One',cursive; font-size:1rem; letter-spacing:1px;
+  padding:14px 28px; border-radius:50px; border:none; cursor:pointer;
+  transition:all 0.25s; box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.rbtn:hover{ transform:translateY(-3px); }
+.rbtn.primary{ background:linear-gradient(135deg,#0288d1,#00acc1); color:#fff; }
+.rbtn.secondary{ background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.2); }
+
+/* ══════════════════════════════════════════
+   ACHIEVEMENT TOAST
+══════════════════════════════════════════ */
+#achievement-toast{
+  position:fixed; top:80px; left:50%; transform:translateX(-50%) translateY(-100px);
+  z-index:100; background:rgba(255,230,0,0.15); border:1px solid rgba(255,230,0,0.4);
+  border-radius:16px; padding:12px 24px;
+  font-family:'Fredoka One',cursive; font-size:0.95rem; letter-spacing:2px;
+  color:var(--yellow); text-align:center; white-space:nowrap;
+  transition:transform 0.5s cubic-bezier(0.23,1,0.32,1);
+  box-shadow:0 0 30px rgba(255,230,0,0.2);
+}
+#achievement-toast.show{ transform:translateX(-50%) translateY(0); }
+
+/* ══════════════════════════════════════════
+   CREATURE TOOLTIP
+══════════════════════════════════════════ */
+#creature-info{
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.15);
+  border-radius:16px; padding:12px 20px; z-index:25;
+  font-size:0.9rem; color:rgba(255,255,255,0.8); text-align:center;
+  max-width:260px; pointer-events:none;
+  opacity:0; transition:opacity 0.3s;
+}
+#creature-info.show{ opacity:1; }
+
+/* ══════════════════════════════════════════
+   PARTICLE CANVAS
+══════════════════════════════════════════ */
+#particles{ position:fixed; inset:0; pointer-events:none; z-index:15; }
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .modes-grid{ grid-template-columns:1fr 1fr; }
+  .action-btn{ padding:12px 20px; font-size:0.9rem; }
+  .result-stats{ gap:10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- OCEAN WORLD -->
+<div id="ocean" aria-hidden="true">
+  <!-- Light rays -->
+  <div class="ray" style="left:8%;  height:70vh; animation-delay:0s;   animation-duration:7s;"></div>
+  <div class="ray" style="left:22%; height:55vh; animation-delay:1.5s; animation-duration:5s;"></div>
+  <div class="ray" style="left:38%; height:80vh; animation-delay:0.8s; animation-duration:9s;"></div>
+  <div class="ray" style="left:55%; height:60vh; animation-delay:2.2s; animation-duration:6s;"></div>
+  <div class="ray" style="left:72%; height:75vh; animation-delay:0.3s; animation-duration:8s;"></div>
+  <div class="ray" style="left:88%; height:50vh; animation-delay:1.8s; animation-duration:6s;"></div>
+</div>
+
+<!-- DEPTH ZONES -->
+<div class="zone-label" style="top:12%">Superficie</div>
+<div class="zone-label" style="top:35%">Zona Crepuscular</div>
+<div class="zone-label" style="top:60%">Zona de Medianoche</div>
+<div class="zone-label" style="top:82%">Abismo</div>
+
+<!-- DIVER -->
+<div id="diver-wrap" style="top:20%">
+  <svg id="diver-svg" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+    <!-- Tank -->
+    <rect x="58" y="52" width="14" height="32" rx="7" fill="#546e7a"/>
+    <rect x="60" y="50" width="10" height="6"  rx="3" fill="#78909c"/>
+    <!-- Body -->
+    <rect x="32" y="50" width="30" height="40" rx="14" fill="#0288d1"/>
+    <!-- Wetsuit stripes -->
+    <rect x="32" y="62" width="30" height="4" rx="2" fill="#01579b" opacity="0.6"/>
+    <rect x="32" y="72" width="30" height="4" rx="2" fill="#01579b" opacity="0.6"/>
+    <!-- Arms -->
+    <rect x="18" y="52" width="16" height="10" rx="5" fill="#0288d1"/>
+    <rect x="64" y="52" width="16" height="10" rx="5" fill="#0288d1"/>
+    <!-- Fins -->
+    <ellipse cx="38" cy="96" rx="10" ry="5" fill="#ff7043" transform="rotate(-15 38 96)"/>
+    <ellipse cx="56" cy="96" rx="10" ry="5" fill="#ff7043" transform="rotate(15 56 96)"/>
+    <!-- Mask -->
+    <rect x="33" y="30" width="28" height="20" rx="8" fill="#e3f2fd" opacity="0.9"/>
+    <rect x="35" y="32" width="24" height="16" rx="6" fill="#81d4fa" opacity="0.6"/>
+    <!-- Head -->
+    <ellipse cx="47" cy="24" rx="16" ry="14" fill="#ffcc80"/>
+    <!-- Hood -->
+    <path d="M31 24 Q31 10 47 10 Q63 10 63 24" fill="#0288d1"/>
+    <!-- Face expressions (toggled) -->
+    <g id="face-happy">
+      <circle cx="41" cy="22" r="3" fill="#333"/>
+      <circle cx="53" cy="22" r="3" fill="#333"/>
+      <path d="M40 30 Q47 36 54 30" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+    <g id="face-ok" style="display:none">
+      <circle cx="41" cy="22" r="3" fill="#333"/>
+      <circle cx="53" cy="22" r="3" fill="#333"/>
+      <line x1="40" y1="31" x2="54" y2="31" stroke="#555" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <g id="face-stressed" style="display:none">
+      <circle cx="41" cy="22" r="3" fill="#333"/>
+      <circle cx="53" cy="22" r="3" fill="#333"/>
+      <path d="M40 34 Q47 28 54 34" stroke="#e53935" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Sweat -->
+      <circle cx="37" cy="18" r="2" fill="#64b5f6" opacity="0.8"/>
+    </g>
+    <g id="face-danger" style="display:none">
+      <line x1="38" y1="19" x2="44" y2="25" stroke="#e53935" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="44" y1="19" x2="38" y2="25" stroke="#e53935" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="50" y1="19" x2="56" y2="25" stroke="#e53935" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="56" y1="19" x2="50" y2="25" stroke="#e53935" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="40" y1="34" x2="54" y2="34" stroke="#e53935" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    <!-- Bubbles from regulator -->
+    <circle cx="68" cy="55" r="3" fill="rgba(255,255,255,0.5)" opacity="0.7"/>
+    <circle cx="72" cy="48" r="2" fill="rgba(255,255,255,0.4)" opacity="0.5"/>
+    <circle cx="75" cy="42" r="1.5" fill="rgba(255,255,255,0.3)" opacity="0.4"/>
+  </svg>
+</div>
+
+<!-- DEPTH METER -->
+<div id="depth-meter">
+  <div class="depth-label">PROF</div>
+  <div class="depth-bar">
+    <div class="depth-fill" id="depthFill" style="height:0%"></div>
+  </div>
+  <div id="depth-val">0m</div>
+</div>
+
+<!-- OXYGEN BAR -->
+<div id="oxy-wrap" style="display:none">
+  <div id="oxy-track">
+    <div id="oxy-fill"></div>
+    <span id="oxy-pct">100%</span>
+  </div>
+</div>
+
+<!-- TIMER RING -->
+<div id="timer-ring">
+  <svg class="ring-svg" viewBox="0 0 100 100">
+    <circle class="ring-bg" cx="50" cy="50" r="45"/>
+    <circle class="ring-prog" id="ringProg" cx="50" cy="50" r="45"/>
+    <text id="ring-num" x="50" y="50">0</text>
+  </svg>
+  <div id="ring-label">segundos</div>
+</div>
+
+<!-- SCORE BADGE -->
+<div class="score-badge" id="scoreBadge" style="display:none">
+  <span class="score-val" id="scoreVal">0</span>
+  <span class="score-lbl">puntos</span>
+</div>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particles"></canvas>
+
+<!-- ACHIEVEMENT TOAST -->
+<div id="achievement-toast">⚡ ¡NUEVO RÉCORD!</div>
+
+<!-- CREATURE INFO -->
+<div id="creature-info"></div>
+
+<!-- ════════════════ SCREENS ════════════════ -->
+
+<!-- START -->
+<div class="screen" id="start-screen">
+  <div class="game-title">🌊 Océano Profundo</div>
+  <div class="game-subtitle">Entrena tus pulmones · Apnea</div>
+
+  <div class="records-panel">
+    <div class="rec-chip">
+      <span class="rec-val" id="recFacil">0s</span>
+      <span class="rec-lbl">Fácil</span>
+    </div>
+    <div class="rec-chip">
+      <span class="rec-val" id="recMedio">0s</span>
+      <span class="rec-lbl">Medio</span>
+    </div>
+    <div class="rec-chip">
+      <span class="rec-val" id="recDificil">0s</span>
+      <span class="rec-lbl">Difícil</span>
+    </div>
+    <div class="rec-chip">
+      <span class="rec-val" id="recReto">0s</span>
+      <span class="rec-lbl">Reto</span>
+    </div>
+  </div>
+
+  <div class="modes-grid">
+    <div class="mode-card easy" onclick="selectMode('facil')">
+      <span class="mode-emoji">🐠</span>
+      <span class="mode-name">Fácil</span>
+      <span class="mode-time">10 segundos</span>
+      <span class="mode-desc">Perfecto para empezar. Zona superficial del océano.</span>
+    </div>
+    <div class="mode-card medium" onclick="selectMode('medio')">
+      <span class="mode-emoji">🐬</span>
+      <span class="mode-name">Medio</span>
+      <span class="mode-time">20 segundos</span>
+      <span class="mode-desc">Como los delfines. Zona crepuscular.</span>
+    </div>
+    <div class="mode-card hard" onclick="selectMode('dificil')">
+      <span class="mode-emoji">🦈</span>
+      <span class="mode-name">Difícil</span>
+      <span class="mode-time">30 segundos</span>
+      <span class="mode-desc">Aguas profundas. Solo para valientes.</span>
+    </div>
+    <div class="mode-card challenge" onclick="selectMode('reto')">
+      <span class="mode-emoji">🐋</span>
+      <span class="mode-name">Reto Libre</span>
+      <span class="mode-time">¡Hasta el límite!</span>
+      <span class="mode-desc">¿Cuánto puedes aguantar? Cuenta tu tiempo.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PREP -->
+<div class="screen hidden" id="prep-screen">
+  <div class="breath-guide">
+    <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;text-align:center;margin-bottom:8px">
+      Prepara tus pulmones
+    </div>
+    <div class="breath-circle-outer">
+      <div class="breath-circle-inner">
+        <span class="breath-text" id="breathPhase">INHALA</span>
+        <span class="breath-count" id="breathCount">4</span>
+      </div>
+    </div>
+    <p class="prep-instruction" id="prepInstruction">
+      Respira profundo con nosotros. <b>Inhala 4 segundos</b>, luego exhala. Cuando estés listo, ¡a bucear!
+    </p>
+    <button class="action-btn btn-dive" id="prepBtn" style="pointer-events:auto" onclick="startDive()">
+      🤿 ¡Listo! ¡A bucear!
+    </button>
+    <button class="action-btn" style="pointer-events:auto;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.2)" onclick="showScreen('start')">
+      ← Volver
+    </button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen hidden" id="game-screen">
+  <div class="action-btns">
+    <button class="action-btn btn-surface" id="surfaceBtn" onclick="emergencySurface()">
+      🆙 ¡Salir al aire!
+    </button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen hidden" id="result-screen">
+  <div class="result-emoji" id="resultEmoji">🏆</div>
+  <div class="result-title" id="resultTitle">¡Increíble!</div>
+  <div class="result-word" id="resultWord"></div>
+  <div class="result-stats" id="resultStats"></div>
+  <div class="new-record" id="newRecord" style="display:none">🏆 ¡NUEVO RÉCORD PERSONAL!</div>
+  <div class="result-tip" id="resultTip"></div>
+  <div class="result-btns">
+    <button class="rbtn primary" onclick="selectMode(currentMode)">🔁 Intentar de nuevo</button>
+    <button class="rbtn secondary" onclick="showScreen('start')">🏠 Inicio</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+const MODES = {
+  facil:   { time:10, label:'Fácil',   creature:'🐠', depth:15,  points:100, color:'#00e676' },
+  medio:   { time:20, label:'Medio',   creature:'🐬', depth:35,  points:200, color:'#29b6f6' },
+  dificil: { time:30, label:'Difícil', creature:'🦈', depth:60,  points:400, color:'#ff9800' },
+  reto:    { time:999, label:'Reto',   creature:'🐋', depth:100, points:20,  color:'#ff0090' },
+};
+
+const TIPS = {
+  facil:   ['¡Bien hecho!', '¡Sigue practicando cada día!', 'Cada vez lo harás mejor 💪'],
+  medio:   ['¡Excelente control respiratorio!', 'Los delfines aguantan 15 min — ¡tú vas progresando!'],
+  dificil: ['¡Eso requiere mucha disciplina!', '¡Nivel avanzado alcanzado! 🦈'],
+  reto:    ['El récord mundial de apnea es 24 minutos... ¡sigue entrenando!', '¡Increíble resistencia!'],
+};
+
+const CREATURES = [
+  { emoji:'🐟', name:'Pez Payaso', fun:'¡Igual que Nemo!' },
+  { emoji:'🐠', name:'Pez Tropical', fun:'Sus colores brillan en el arrecife' },
+  { emoji:'🐡', name:'Pez Globo', fun:'Se infla cuando tiene miedo' },
+  { emoji:'🦑', name:'Calamar', fun:'Puede cambiar de color instantáneamente' },
+  { emoji:'🐙', name:'Pulpo', fun:'Tiene 3 corazones y sangre azul' },
+  { emoji:'🦀', name:'Cangrejo', fun:'Camina de lado para ir más rápido' },
+  { emoji:'🦞', name:'Langosta', fun:'¡Puede vivir más de 100 años!' },
+  { emoji:'🐢', name:'Tortuga Marina', fun:'Puede aguantar la respiración 7 horas' },
+  { emoji:'🦭', name:'Foca', fun:'Aguanta bajo el agua hasta 30 minutos' },
+  { emoji:'🐬', name:'Delfín', fun:'Es uno de los animales más inteligentes' },
+  { emoji:'🦈', name:'Tiburón', fun:'Tiene 300 millones de años en la Tierra' },
+  { emoji:'🐋', name:'Ballena Azul', fun:'¡El animal más grande que ha existido!' },
+  { emoji:'🦐', name:'Camarón', fun:'Puede ver colores que los humanos no ven' },
+  { emoji:'🪸', name:'Coral', fun:'Es un animal, no una planta' },
+  { emoji:'✨', name:'Pez Linterna', fun:'Genera su propia luz en el fondo marino' },
+];
+
+let currentMode   = 'medio';
+let score         = 0;
+let elapsed       = 0;
+let timerInterval = null;
+let gameActive    = false;
+let isChallenge   = false;
+let breathInterval= null;
+let creatureInterval = null;
+
+// ════════════════════════════════════════════════════
+// RECORDS
+// ════════════════════════════════════════════════════
+function getRec(mode){ return parseInt(localStorage.getItem(`apnea_rec_${mode}`) || '0'); }
+function setRec(mode,val){ localStorage.setItem(`apnea_rec_${mode}`, val); }
+function loadRecords(){
+  ['facil','medio','dificil','reto'].forEach(m=>{
+    const el = document.getElementById('rec' + m.charAt(0).toUpperCase() + m.slice(1));
+    if(el){ const v=getRec(m); el.textContent = v>0 ? v+'s' : '—'; }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// SCREENS
+// ════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id+'-screen').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════
+// MODE SELECT → PREP SCREEN
+// ════════════════════════════════════════════════════
+function selectMode(mode){
+  currentMode = mode;
+  isChallenge = mode === 'reto';
+  showScreen('prep');
+  startBreathingGuide();
+  // Set ocean to surface color
+  document.getElementById('ocean').style.background = 'linear-gradient(180deg,#29b6f6 0%,#0d47a1 15%,#0a2342 40%,#051020 70%,#020d1a 100%)';
+  // Reset diver to surface
+  setDiverPos(15);
+  setFace('happy');
+}
+
+// ════════════════════════════════════════════════════
+// BREATHING GUIDE
+// ════════════════════════════════════════════════════
+function startBreathingGuide(){
+  clearInterval(breathInterval);
+  const phases = [
+    {text:'INHALA', dur:4, color:'#29b6f6'},
+    {text:'RETÉN',  dur:4, color:'#ffe600'},
+    {text:'EXHALA', dur:4, color:'#00e676'},
+    {text:'PAUSA',  dur:2, color:'rgba(255,255,255,0.4)'},
+  ];
+  let phaseIdx = 0, phaseCount = 0;
+
+  function runPhase(){
+    const p = phases[phaseIdx];
+    document.getElementById('breathPhase').textContent = p.text;
+    document.getElementById('breathPhase').style.color = p.color;
+    phaseCount = p.dur;
+    document.getElementById('breathCount').textContent = phaseCount;
+
+    breathInterval = setInterval(()=>{
+      phaseCount--;
+      document.getElementById('breathCount').textContent = phaseCount;
+      if(phaseCount <= 0){
+        clearInterval(breathInterval);
+        phaseIdx = (phaseIdx+1) % phases.length;
+        setTimeout(runPhase, 200);
+      }
+    }, 1000);
+  }
+  runPhase();
+}
+
+// ════════════════════════════════════════════════════
+// START DIVE
+// ════════════════════════════════════════════════════
+function startDive(){
+  clearInterval(breathInterval);
+  showScreen('game');
+  document.getElementById('oxy-wrap').style.display = 'block';
+  document.getElementById('timer-ring').style.display = 'flex';
+  document.getElementById('scoreBadge').style.display = 'flex';
+
+  score   = 0;
+  elapsed = 0;
+  gameActive = true;
+  updateScore(0);
+
+  const mode = MODES[currentMode];
+
+  // Dive animation
+  animateDiveDown();
+
+  // Ring setup
+  const maxT = isChallenge ? 120 : mode.time;
+  updateRing(0, maxT);
+  updateOxygen(100);
+  setFace('happy');
+
+  // Start timer
+  timerInterval = setInterval(()=>{
+    if(!gameActive) return;
+    elapsed++;
+
+    if(isChallenge){
+      const pct = Math.max(0, 100 - (elapsed / 90) * 100); // 90s = empty
+      updateOxygen(pct);
+      updateRing(elapsed, 999);
+      score = elapsed * MODES.reto.points;
+      updateScore(score);
+      if(pct <= 0){ endDive(true); return; }
+    } else {
+      const pct = ((mode.time - elapsed) / mode.time) * 100;
+      updateOxygen(pct);
+      updateRing(mode.time - elapsed, mode.time);
+      score += mode.points;
+      updateScore(score);
+      if(elapsed >= mode.time){ endDive(true); return; }
+    }
+
+    // Update face by oxygen %
+    const oxy = parseFloat(document.getElementById('oxy-fill').style.width);
+    if(oxy > 60)     setFace('happy');
+    else if(oxy > 35) setFace('ok');
+    else if(oxy > 15) setFace('stressed');
+    else              setFace('danger');
+
+    // Depth
+    const depthPct = Math.min(100, (elapsed / (isChallenge?90:mode.time)) * 100);
+    const depthM   = Math.round((depthPct/100) * mode.depth);
+    document.getElementById('depthFill').style.height = depthPct+'%';
+    document.getElementById('depth-val').textContent = depthM+'m';
+
+    // Background deepens
+    updateOceanDepth(depthPct);
+
+    // Spawn bubbles regularly
+    if(elapsed % 2 === 0) spawnBubble();
+
+  }, 1000);
+
+  // Creatures
+  startCreatures();
+}
+
+// ════════════════════════════════════════════════════
+// DIVER ANIMATION
+// ════════════════════════════════════════════════════
+function setDiverPos(topPct){
+  document.getElementById('diver-wrap').style.top = topPct + '%';
+}
+
+function animateDiveDown(){
+  let pct = 15;
+  const targetPct = 35;
+  const step = () => {
+    pct += 1.5;
+    setDiverPos(Math.min(pct, targetPct));
+    if(pct < targetPct) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  document.getElementById('diver-svg').classList.add('diving');
+}
+
+function setFace(type){
+  ['happy','ok','stressed','danger'].forEach(f=>{
+    document.getElementById('face-'+f).style.display = f===type ? 'block' : 'none';
+  });
+}
+
+// ════════════════════════════════════════════════════
+// UI UPDATES
+// ════════════════════════════════════════════════════
+function updateOxygen(pct){
+  const fill = document.getElementById('oxy-fill');
+  fill.style.width = pct+'%';
+  document.getElementById('oxy-pct').textContent = Math.round(pct)+'%';
+  // Color based on level
+  if(pct > 60) fill.style.background = 'linear-gradient(90deg,#00e676,#29b6f6)';
+  else if(pct > 30) fill.style.background = 'linear-gradient(90deg,#ff9800,#ffe600)';
+  else fill.style.background = 'linear-gradient(90deg,#ff1744,#ff7043)';
+}
+
+function updateRing(current, max){
+  const circ = 283;
+  const pct  = isChallenge ? 1 : Math.max(0, current/max);
+  const offset = isChallenge ? 0 : circ * pct;
+  const prog = document.getElementById('ringProg');
+  prog.style.strokeDashoffset = offset;
+  prog.style.stroke = pct > 0.5 ? '#00e676' : pct > 0.25 ? '#ffe600' : '#ff1744';
+  document.getElementById('ring-num').textContent = isChallenge ? elapsed+'s' : current+'s';
+}
+
+function updateScore(val){
+  const el = document.getElementById('scoreVal');
+  el.textContent = val;
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  setTimeout(()=>el.classList.remove('bump'),200);
+}
+
+function updateOceanDepth(pct){
+  const r = Math.round(13 - pct*0.1);
+  const g = Math.round(59 - pct*0.5);
+  const b = Math.round(110 - pct*0.8);
+  document.getElementById('ocean').style.background =
+    `linear-gradient(180deg,#29b6f6 0%,rgb(${r},${g},${b}) 30%,#030f1e 70%,#020d1a 100%)`;
+}
+
+// ════════════════════════════════════════════════════
+// END DIVE
+// ════════════════════════════════════════════════════
+function endDive(success){
+  if(!gameActive) return;
+  gameActive = false;
+  clearInterval(timerInterval);
+  clearInterval(creatureInterval);
+
+  document.getElementById('diver-svg').classList.remove('diving');
+  document.getElementById('oxy-wrap').style.display = 'none';
+  document.getElementById('timer-ring').style.display = 'none';
+  document.getElementById('scoreBadge').style.display = 'none';
+
+  // Animate diver back up
+  let pos = 35;
+  const rise = setInterval(()=>{
+    pos -= 2; setDiverPos(Math.max(pos, 15));
+    if(pos <= 15) clearInterval(rise);
+  }, 60);
+  setFace('happy');
+
+  const mode = MODES[currentMode];
+  const time = elapsed;
+
+  // Check record
+  const prevRec = getRec(currentMode);
+  const isNewRec = time > prevRec;
+  if(isNewRec) setRec(currentMode, time);
+
+  // Build result
+  setTimeout(()=>{
+    showScreen('result');
+    loadRecords();
+
+    const won = success && (isChallenge ? time >= 5 : true);
+
+    document.getElementById('resultEmoji').textContent =
+      !success ? '🏊' :
+      isChallenge && time >= 60 ? '🏆' :
+      isChallenge && time >= 30 ? '🥇' :
+      time >= mode.time * 0.9 ? '🌟' : '✅';
+
+    document.getElementById('resultTitle').textContent =
+      !success ? '¡Bien por salir a tiempo!' :
+      isChallenge ? `¡${time}s bajo el agua!` :
+      '¡Lo lograste! 🎉';
+    document.getElementById('resultTitle').className = 'result-title ' + (won?'win':'lose');
+
+    document.getElementById('resultWord').textContent =
+      isChallenge
+        ? `Aguantaste ${time} segundo${time!==1?'s':''} bajo el agua.\n${time>=30?'¡Nivel delfín alcanzado! 🐬':'¡Sigue entrenando!'}` 
+        : success
+          ? `Completaste ${mode.time} segundos de apnea. ¡${mode.label} superado!`
+          : `Saliste a los ${time}s de ${mode.time}s. ¡Cada intento cuenta!`;
+
+    // Stats
+    const statsEl = document.getElementById('resultStats');
+    statsEl.innerHTML = `
+      <div class="res-stat"><span class="res-stat-val">${time}s</span><span class="res-stat-lbl">Tiempo</span></div>
+      <div class="res-stat"><span class="res-stat-val">${score}</span><span class="res-stat-lbl">Puntos</span></div>
+      <div class="res-stat"><span class="res-stat-val">${getRec(currentMode)}s</span><span class="res-stat-lbl">Récord</span></div>
+    `;
+
+    document.getElementById('newRecord').style.display = isNewRec && time >= 5 ? 'block' : 'none';
+
+    // Tip
+    const tips = TIPS[currentMode];
+    const animals = CREATURES.filter(c=>c.emoji!=='✨');
+    const animal  = animals[Math.floor(Math.random()*animals.length)];
+    document.getElementById('resultTip').innerHTML =
+      `🌊 <b>¿Sabías que?</b> El ${animal.name} ${animal.fun}.<br><br>💡 <b>Consejo:</b> ${tips[Math.floor(Math.random()*tips.length)]}`;
+
+    if(won) spawnWinParticles();
+    if(isNewRec && time>=5) showAchievement('🏆 ¡NUEVO RÉCORD PERSONAL!');
+
+  }, 800);
+}
+
+function emergencySurface(){
+  endDive(false);
+}
+
+// ════════════════════════════════════════════════════
+// CREATURES
+// ════════════════════════════════════════════════════
+function startCreatures(){
+  clearInterval(creatureInterval);
+  spawnCreature(); // immediate first
+  creatureInterval = setInterval(spawnCreature, 6000 + Math.random()*4000);
+}
+
+function spawnCreature(){
+  if(!gameActive) return;
+  const c = CREATURES[Math.floor(Math.random()*CREATURES.length)];
+  const rtl = Math.random() > 0.5;
+  const el = document.createElement('div');
+  el.className = 'creature' + (rtl?' rtl':'');
+  el.textContent = c.emoji;
+  const topPct = 20 + Math.random()*60;
+  el.style.top = topPct+'%';
+  el.style.left = rtl ? '105vw' : '-5vw';
+  const dur = 8 + Math.random()*8;
+  el.style.animationDuration = dur+'s';
+  el.style.fontSize = (1.8 + Math.random()*1.4)+'rem';
+  document.body.appendChild(el);
+
+  // Show info tooltip briefly
+  setTimeout(()=>{
+    const info = document.getElementById('creature-info');
+    info.innerHTML = `${c.emoji} <b>${c.name}</b><br><span style="font-size:0.82rem;opacity:0.7">${c.fun}</span>`;
+    info.classList.add('show');
+    setTimeout(()=>info.classList.remove('show'), 2500);
+  }, 1000);
+
+  el.addEventListener('animationend',()=>el.remove());
+}
+
+// ════════════════════════════════════════════════════
+// BUBBLES
+// ════════════════════════════════════════════════════
+function spawnBubble(){
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  const size = 6 + Math.random()*18;
+  b.style.width  = size+'px';
+  b.style.height = size+'px';
+  b.style.left   = (20 + Math.random()*60)+'%';
+  b.style.bottom = (30 + Math.random()*30)+'%';
+  const dur = 3 + Math.random()*4;
+  b.style.animationDuration = dur+'s';
+  document.getElementById('ocean').appendChild(b);
+  b.addEventListener('animationend',()=>b.remove());
+}
+
+// ════════════════════════════════════════════════════
+// PARTICLES
+// ════════════════════════════════════════════════════
+const canvas = document.getElementById('particles');
+const pctx   = canvas.getContext('2d');
+let particles = [];
+function resizeCanvas(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+resizeCanvas(); window.addEventListener('resize',resizeCanvas);
+
+function spawnWinParticles(){
+  const cols=['#00e676','#29b6f6','#ffe600','#ff0090','#aa00ff','#ff6600'];
+  for(let i=0;i<120;i++) particles.push({
+    x:Math.random()*innerWidth, y:innerHeight+10,
+    vx:(Math.random()-0.5)*4, vy:-(3+Math.random()*6),
+    life:1, decay:0.007+Math.random()*0.007,
+    size:3+Math.random()*5, color:cols[i%cols.length],
+    rot:Math.random()*Math.PI*2, rotV:(Math.random()-0.5)*0.15
+  });
+}
+
+function animP(){
+  pctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.04; p.life-=p.decay; p.rot+=p.rotV;
+    pctx.save(); pctx.globalAlpha=p.life; pctx.translate(p.x,p.y); pctx.rotate(p.rot);
+    pctx.fillStyle=p.color; pctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+    pctx.restore();
+  });
+  requestAnimationFrame(animP);
+}
+animP();
+
+// ════════════════════════════════════════════════════
+// ACHIEVEMENT TOAST
+// ════════════════════════════════════════════════════
+function showAchievement(msg){
+  const t = document.getElementById('achievement-toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════════════════════════
+// SEAWEED & PLANKTON (decorative)
+// ════════════════════════════════════════════════════
+function buildDecor(){
+  const ocean = document.getElementById('ocean');
+  // Seaweed
+  const swColors = ['#2e7d32','#1b5e20','#388e3c','#43a047','#1565c0'];
+  for(let i=0;i<8;i++){
+    const sw = document.createElement('div');
+    sw.className = 'seaweed';
+    sw.style.left  = (5+i*12+Math.random()*6)+'%';
+    sw.style.height= (60+Math.random()*80)+'px';
+    sw.style.background = `linear-gradient(to top,${swColors[i%swColors.length]},${swColors[(i+2)%swColors.length]})`;
+    sw.style.borderRadius = '8px';
+    sw.style.animationDelay = (Math.random()*2)+'s';
+    sw.style.animationDuration= (2+Math.random()*2)+'s';
+    ocean.appendChild(sw);
+  }
+  // Plankton
+  for(let i=0;i<20;i++){
+    const p = document.createElement('div');
+    p.className='plankton';
+    const sz = 2+Math.random()*5;
+    p.style.width=sz+'px'; p.style.height=sz+'px';
+    p.style.left=(Math.random()*100)+'%';
+    p.style.top=(20+Math.random()*70)+'%';
+    p.style.animationDuration=(4+Math.random()*8)+'s';
+    p.style.animationDelay=(Math.random()*6)+'s';
+    ocean.appendChild(p);
+  }
+}
+buildDecor();
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+loadRecords();
+setDiverPos(15);
+</script>
+</body>
+</html>
