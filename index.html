@@ -743,8 +743,8 @@ function buildAll() {
           </div>
         </div>`;
 
-      card.addEventListener('click', () => window.open(g.url, '_blank'));
-      card.querySelector('.card-play').addEventListener('click', e => { e.stopPropagation(); window.open(g.url,'_blank'); });
+      card.addEventListener('click', () => { window.location.href = g.url; });
+      card.querySelector('.card-play').addEventListener('click', e => { e.stopPropagation(); window.location.href = g.url; });
       carousel.appendChild(card);
     });
   });
