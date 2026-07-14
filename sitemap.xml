@@ -1,51 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Pagina Principal -->
   <url>
-    <loc>index.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Juegos -->
+  <url>
+    <loc>https://elrecreo-kwa6.vercel.app/2048</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>2048.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/ahorcado</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>APNEA.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/APNEA</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>INHALAEXAHALA.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/cube-dash</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>ahorcado.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/INHALAEXAHALA</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>luces-apagadas.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/luces-apagadas</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>neon-racer.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/neon-racer</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>nonograma.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/nonograma</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>pong-tron.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/pong-tron</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>puzzle-15.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/puzzle-15</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>simon.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/simon</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>sudoku.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/sudoku</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>torres-hanoi.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/torres-hanoi</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>torn-jump.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/tron-jump</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>wordle.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/wordle</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Paginas de Informacion / Legales -->
+  <url>
+    <loc>https://elrecreo-kwa6.vercel.app/contacto</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>cube-dash.html</loc>
+    <loc>https://elrecreo-kwa6.vercel.app/cookies</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://elrecreo-kwa6.vercel.app/privacidad</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://elrecreo-kwa6.vercel.app/sobre-nosotros</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://elrecreo-kwa6.vercel.app/terminos</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
